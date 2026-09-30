@@ -37,7 +37,7 @@ Après une modification de `styles.css` ou `main.js`, incrémentez le paramètre
 ## Mise en ligne sur OVH
 
 1. Dans l'espace client OVH, vérifier que le domaine `ma-prevention.fr` pointe sur l'hébergement et activer le certificat SSL (Let's Encrypt, inclus).
-2. Envoyer tout le contenu du dépôt (sauf `README.md` et `.git`) dans le dossier `www/` de l'hébergement, par FTP (FileZilla) ou SFTP.
+2. Envoyer tout le contenu du dépôt (sauf `README.md`, `tests/` et `.git`) dans le dossier `www/` de l'hébergement, par FTP (FileZilla) ou SFTP.
 3. PHP 7.4 minimum est requis pour `contact.php` (version réglable dans l'espace client OVH, onglet *Informations générales* de l'hébergement).
 4. Pour que les e-mails du formulaire ne tombent pas en spam, l'enregistrement SPF du domaine doit autoriser les serveurs OVH (c'est le cas par défaut si la zone DNS est gérée chez OVH).
 5. Tester le formulaire une fois en ligne : la demande doit arriver sur `contact@secutop.fr`.
@@ -56,6 +56,26 @@ php -S 127.0.0.1:8080
 ```
 
 Puis ouvrir http://127.0.0.1:8080. L'envoi d'e-mail échoue en local sans serveur mail, c'est normal.
+
+## Tests automatisés
+
+Le dossier `tests/` contient une suite Playwright (Chromium, format desktop 1440 px et mobile 390 px) qui vérifie :
+
+- chargement sans erreur, images et police, pages annexes ;
+- chaque lien et bouton (ancres, menu, CTA, pied de page, mentions légales), sans élément masqué ou recouvert ;
+- défilement : position des sections sous l'en-tête collant, accès direct par URL, molette, clavier, tactile, absence de défilement horizontal de 320 à 1920 px ;
+- menu mobile, aperçu de marque, simulateur (souris et clavier), FAQ, compteur de places ;
+- formulaire : validations, envoi réel avec contrôle de l'e-mail généré, erreurs serveur et réseau, fonctionnement sans JavaScript ;
+- clavier et accessibilité (lien d'évitement, focus visible, audit axe) ;
+- `contact.php` (validation, anti-spam, injection d'en-têtes) et, si un Apache est disponible, le `.htaccess`.
+
+```
+cd tests
+npm install
+npx playwright test
+```
+
+PHP doit être installé : le site est servi par `php -S` et les e-mails sont écrits dans `tests/.tmp/mail.log` au lieu d'être envoyés. Pour tester aussi le `.htaccess`, servir le site avec Apache et définir `BASE_URL`, `HTACCESS_URL` (et `HTACCESS_HTTP_URL` pour la redirection HTTPS sur le port 80). Le dossier `tests/` n'est pas à envoyer chez OVH (il est de toute façon bloqué par le `.htaccess`).
 
 ## Crédits
 

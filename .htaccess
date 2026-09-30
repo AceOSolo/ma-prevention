@@ -10,13 +10,13 @@ AddType font/woff2 .woff2
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Forcer HTTPS (méthode recommandée par OVH)
-  RewriteCond %{SERVER_PORT} 80
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
-
-  # www.ma-prevention.fr vers ma-prevention.fr
+  # www.ma-prevention.fr vers https://ma-prevention.fr (une seule redirection)
   RewriteCond %{HTTP_HOST} ^www\.ma-prevention\.fr$ [NC]
   RewriteRule ^(.*)$ https://ma-prevention.fr/$1 [R=301,L]
+
+  # Forcer HTTPS (méthode recommandée par OVH)
+  RewriteCond %{SERVER_PORT} ^80$
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
   # /index.html vers /
   RewriteCond %{THE_REQUEST} \s/index\.html[\s?] [NC]
@@ -27,6 +27,7 @@ AddType font/woff2 .woff2
 <FilesMatch "(^\.|\.md$)">
   Require all denied
 </FilesMatch>
+RedirectMatch 404 ^/tests(/|$)
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"

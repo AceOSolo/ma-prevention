@@ -49,6 +49,8 @@
     function slugify(value) {
       return value
         .toLowerCase()
+        .replace(/œ/g, "oe")
+        .replace(/æ/g, "ae")
         .normalize("NFD")
         .replace(/[̀-ͯ]/g, "")
         .replace(/[^a-z0-9]+/g, "-")
@@ -111,6 +113,8 @@
     var form = document.getElementById("contact-form");
     if (!form || !window.fetch) return;
     var status = document.getElementById("form-status");
+    // Sans JavaScript, le navigateur valide lui-même le formulaire.
+    form.noValidate = true;
     var button = form.querySelector("button[type='submit']");
 
     function setStatus(type, message) {

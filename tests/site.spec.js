@@ -158,6 +158,63 @@ test.describe("Liens et boutons", () => {
   });
 });
 
+test.describe("Liens vers secutop.fr", () => {
+  const SECUSOFT = "https://www.secutop.fr/secusoft/";
+
+  test.beforeEach(async ({ context }) => {
+    // Réponse locale : pas de dépendance au vrai site pendant les tests.
+    await context.route("https://www.secutop.fr/**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<title>Secusoft</title>" })
+    );
+  });
+
+  test("liens SECUSOFT présents, dans un nouvel onglet, annoncés aux lecteurs d'écran", async ({ page }) => {
+    await page.goto("/");
+    // Le lien de la FAQ n'est exposé que question ouverte.
+    await page.$$eval("details", (ds) => ds.forEach((d) => (d.open = true)));
+    const links = page.locator(`a[href="${SECUSOFT}"]`);
+    await expect(links).toHaveCount(5);
+    for (let i = 0; i < 5; i++) {
+      const link = links.nth(i);
+      await expect(link).toHaveAttribute("target", "_blank");
+      await expect(link).toHaveAttribute("rel", /noopener/);
+      await expect(link).toHaveAccessibleName(/nouvel onglet/);
+    }
+  });
+
+  for (const [name, selector] of [
+    ["hero", ".hero__link"],
+    ["carte offre SaaS", ".text-link"],
+    ["section plateforme", ".platform__cta"],
+    ["pied de page", ".footer-ext"],
+  ]) {
+    test(`le lien « ${name} » ouvre la page SECUSOFT sans quitter l'offre`, async ({ page }) => {
+      await page.goto("/");
+      const popupPromise = page.waitForEvent("popup");
+      await page.locator(selector).click();
+      const popup = await popupPromise;
+      await popup.waitForLoadState();
+      expect(popup.url()).toBe(SECUSOFT);
+      expect(page.url()).not.toContain("secutop.fr");
+      await popup.close();
+    });
+  }
+
+  test("lien de la FAQ et de la page de confirmation", async ({ page }) => {
+    await page.goto("/");
+    const item = page.locator(".faq-item").nth(1);
+    await item.locator("summary").click();
+    const popupPromise = page.waitForEvent("popup");
+    await item.locator(`a[href="${SECUSOFT}"]`).click();
+    expect((await popupPromise).url()).toBe(SECUSOFT);
+
+    await page.goto("/merci.html");
+    const confirm = page.locator(`a[href="${SECUSOFT}"]`);
+    await expect(confirm).toBeVisible();
+    await expect(confirm).toHaveAttribute("target", "_blank");
+  });
+});
+
 test.describe("Menu mobile", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(!isMobile(testInfo), "menu mobile uniquement");

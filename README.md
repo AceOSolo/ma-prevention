@@ -34,19 +34,16 @@ assets/
 
 Après une modification de `styles.css` ou `main.js`, incrémentez le paramètre `?v=1` dans les balises `<link>` et `<script>` pour que les navigateurs rechargent les fichiers.
 
-## Mise en ligne sur OVH
+## Mise en ligne
 
-Le site est déployé par OVH directement depuis ce dépôt GitHub (déploiement Git de l'hébergement web) : ce qui est fusionné dans `main` est ce qui part en ligne.
+Le site est publié par **GitHub Pages** depuis la branche `main`, sur le domaine `ma-prevention.fr` (fichier `CNAME`, à conserver : le supprimer détache le domaine du site). Le nom de domaine est géré chez OVH, dont la zone DNS pointe vers GitHub Pages.
 
-1. Dans l'espace client OVH, vérifier que le domaine `ma-prevention.fr` pointe sur l'hébergement et que le certificat SSL est actif (Let's Encrypt, inclus).
-2. Le déploiement Git doit viser la branche `main` et le dossier racine du domaine (celui qui contient `index.html` et `.htaccess`). Si le déploiement automatique n'est pas activé (webhook GitHub), relancer le déploiement depuis l'espace client après chaque fusion.
-3. PHP 7.4 minimum est requis pour `contact.php` (version réglable dans l'espace client OVH, onglet *Informations générales* de l'hébergement).
-4. Pour que les e-mails du formulaire ne tombent pas en spam, l'enregistrement SPF du domaine doit autoriser les serveurs OVH (c'est le cas par défaut si la zone DNS est gérée chez OVH).
-5. Tester le formulaire une fois en ligne : la demande doit arriver sur `contact@secutop.fr`.
+Ce qui est fusionné dans `main` est en ligne après quelques minutes.
 
-Le dépôt entier est copié sur l'hébergement. Le `.htaccess` bloque ce qui ne doit pas être public : le dossier `.git`, les fichiers commençant par un point, les fichiers `.md` et le dossier `tests/` (le dossier `.well-known` reste accessible pour les certificats).
+Limites de GitHub Pages, qui ne sert que des fichiers statiques :
 
-GitHub Pages n'est pas utilisé : il n'exécute pas le PHP ni le `.htaccess`, le formulaire n'y fonctionnerait pas. Laisser GitHub Pages désactivé dans les réglages du dépôt.
+- `contact.php` n'est pas exécuté : le formulaire de contact ne peut pas envoyer d'e-mail tel quel (il affiche un message d'erreur invitant à écrire à contact@secutop.fr). Il faut soit un service d'envoi de formulaires, soit héberger `contact.php` sur l'hébergement web OVH.
+- Le `.htaccess` est ignoré (redirections, en-têtes de sécurité). GitHub gère lui-même le HTTPS (option *Enforce HTTPS* dans Settings > Pages). Le `.htaccess` reste utile si le site passe un jour sur l'hébergement web OVH.
 
 Les sous-domaines des marques blanches (`votre-marque.ma-prevention.fr`) sont gérés par la plateforme SECUSOFT et ne dépendent pas de ce site.
 
@@ -81,7 +78,7 @@ npm install
 npx playwright test
 ```
 
-PHP doit être installé : le site est servi par `php -S` et les e-mails sont écrits dans `tests/.tmp/mail.log` au lieu d'être envoyés. Pour tester aussi le `.htaccess`, servir le site avec Apache et définir `BASE_URL`, `HTACCESS_URL` (et `HTACCESS_HTTP_URL` pour la redirection HTTPS sur le port 80). Le dossier `tests/` est copié chez OVH avec le reste du dépôt mais bloqué par le `.htaccess`.
+PHP doit être installé : le site est servi par `php -S` et les e-mails sont écrits dans `tests/.tmp/mail.log` au lieu d'être envoyés. Pour tester aussi le `.htaccess`, servir le site avec Apache et définir `BASE_URL`, `HTACCESS_URL` (et `HTACCESS_HTTP_URL` pour la redirection HTTPS sur le port 80). 
 
 ## Crédits
 

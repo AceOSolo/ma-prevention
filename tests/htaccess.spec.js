@@ -107,7 +107,6 @@ test("dépôt Git non exposé (déploiement Git OVH)", async ({ request }) => {
   for (const path of ["/.git/", "/.git/config", "/.git/HEAD", "/.git/index"]) {
     expect((await request.get(`${BASE}${path}`, { maxRedirects: 0 })).status(), path).toBe(404);
   }
-  expect((await request.get(`${BASE}/CNAME`)).status()).toBe(404);
 });
 
 test("cache et compression", async ({ request }) => {

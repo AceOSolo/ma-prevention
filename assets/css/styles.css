@@ -1402,3 +1402,38 @@ strong { font-weight: 600; }
 .sk--65 { width: 65%; }
 .sk--55 { width: 55%; }
 .cta .early-strip__places { display: inline-block; }
+
+/* ---------- Liens vers secutop.fr ---------- */
+
+/* Icône en ligne : elle suit le dernier mot quand le lien passe à la ligne. */
+.icon--ext {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  margin-left: 4px;
+  vertical-align: -0.15em;
+}
+.btn .icon--ext { margin-left: 0; }
+
+.hero__link {
+  align-self: flex-start;
+  color: var(--white);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+  text-underline-offset: 4px;
+}
+.hero__link:hover { color: var(--ice); text-decoration-color: var(--ice); }
+
+.text-link {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.platform__cta { margin-top: 28px; }
+
+.page-actions { display: flex; flex-wrap: wrap; gap: 12px; }

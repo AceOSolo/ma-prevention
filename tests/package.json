@@ -1,0 +1,13 @@
+{
+  "name": "ma-prevention-tests",
+  "private": true,
+  "description": "Tests de bout en bout du site ma-prevention.fr",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "axe-core": "^4.10.0"
+  }
+}

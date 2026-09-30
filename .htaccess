@@ -1,0 +1,55 @@
+# ma-prevention.fr : configuration Apache pour l'hébergement mutualisé OVH
+
+Options -Indexes
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+AddDefaultCharset utf-8
+AddCharset utf-8 .html .css .js .xml .txt
+AddType font/woff2 .woff2
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # www.ma-prevention.fr vers https://ma-prevention.fr (une seule redirection)
+  RewriteCond %{HTTP_HOST} ^www\.ma-prevention\.fr$ [NC]
+  RewriteRule ^(.*)$ https://ma-prevention.fr/$1 [R=301,L]
+
+  # Forcer HTTPS (méthode recommandée par OVH)
+  RewriteCond %{SERVER_PORT} ^80$
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # /index.html vers /
+  RewriteCond %{THE_REQUEST} \s/index\.html[\s?] [NC]
+  RewriteRule ^index\.html$ / [R=301,L]
+</IfModule>
+
+# Fichiers non publics
+<FilesMatch "(^\.|\.md$)">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 ^/tests(/|$)
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 hour"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/x-icon "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>

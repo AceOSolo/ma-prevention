@@ -10,13 +10,16 @@ AddType font/woff2 .woff2
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # www.ma-prevention.fr vers https://ma-prevention.fr (une seule redirection)
-  RewriteCond %{HTTP_HOST} ^www\.ma-prevention\.fr$ [NC]
-  RewriteRule ^(.*)$ https://ma-prevention.fr/$1 [R=301,L]
+  # Pas de redirection entre www et le domaine nu : c'est la configuration
+  # du domaine chez OVH qui décide (une règle ici créait une boucle).
 
-  # Forcer HTTPS (méthode recommandée par OVH)
+  # Forcer HTTPS sur le même domaine, uniquement si la requête est vraiment
+  # en HTTP : les trois conditions évitent toute boucle derrière un proxy
+  # ou le CDN OVH qui transmettent la requête en HTTP au serveur.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteCond %{SERVER_PORT} ^80$
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
   # /index.html vers /
   RewriteCond %{THE_REQUEST} \s/index\.html[\s?] [NC]

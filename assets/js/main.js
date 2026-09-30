@@ -108,63 +108,10 @@
     });
   }
 
-  /* Formulaire de contact : envoi vers contact.php */
-  function initForm() {
-    var form = document.getElementById("contact-form");
-    if (!form || !window.fetch) return;
-    var status = document.getElementById("form-status");
-    // Sans JavaScript, le navigateur valide lui-même le formulaire.
-    form.noValidate = true;
-    var button = form.querySelector("button[type='submit']");
-
-    function setStatus(type, message) {
-      status.className = "form__status" + (type ? " is-" + type : "");
-      status.textContent = message;
-    }
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      setStatus("", "");
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = "Envoi en cours…";
-
-      fetch(form.action, {
-        method: "POST",
-        body: new FormData(form),
-        headers: { Accept: "application/json" }
-      })
-        .then(function (res) {
-          return res.json().catch(function () { return { ok: false }; });
-        })
-        .then(function (data) {
-          if (data && data.ok) {
-            form.reset();
-            setStatus("success", "Merci, votre demande a bien été envoyée. Nous vous recontactons rapidement.");
-          } else {
-            setStatus("error", (data && data.message) || "L'envoi n'a pas abouti. Vous pouvez nous écrire à contact@secutop.fr.");
-          }
-        })
-        .catch(function () {
-          setStatus("error", "L'envoi n'a pas abouti. Vous pouvez nous écrire à contact@secutop.fr.");
-        })
-        .finally(function () {
-          button.disabled = false;
-          button.textContent = "Envoyer ma demande";
-        });
-    });
-  }
-
   document.addEventListener("DOMContentLoaded", function () {
     initMenu();
     initBrandPreview();
     initSimulator();
     initPlaces();
-    initForm();
   });
 })();

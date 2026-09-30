@@ -119,11 +119,3 @@ test("cache et compression", async ({ request }) => {
   const html = await request.get(`${BASE}/`);
   expect(html.headers()["cache-control"]).toMatch(/max-age=0/);
 });
-
-test("formulaire fonctionnel derrière Apache", async ({ request }) => {
-  const res = await request.post(`${BASE}/contact.php`, {
-    form: { nom: "" },
-    headers: { Accept: "application/json" },
-  });
-  expect(res.status()).toBe(422);
-});

@@ -24,7 +24,7 @@
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
   <link rel="preload" href="assets/fonts/rubik-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/styles.css?v=3">
+  <link rel="stylesheet" href="assets/css/styles.css?v=4">
   <script src="assets/js/main.js?v=1" defer></script>
 
   <script type="application/ld+json">
@@ -631,77 +631,25 @@
           <h2 class="h2 cta__title" id="contact-title">Devenez l'un des 20 premiers distributeurs SECUSOFT</h2>
           <p class="cta__price"><strong>1&nbsp;900&nbsp;€&nbsp;HT</strong><span>au lieu de <s>2&nbsp;900&nbsp;€&nbsp;HT</s></span></p>
           <p class="js-early"><span class="early-strip__places js-places">Encore 20 places disponibles</span></p>
+          <a class="btn btn--primary cta__mobile-cta" href="https://www.secutop.fr/contact/" target="_blank" rel="noopener">Contacter Secutop<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a>
           <ul class="checklist">
             <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"/></svg><span>Personnalisation complète et mise en service</span></li>
             <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"/></svg><span>10 codes promo de packs, soit 3&nbsp;000&nbsp;€ de valeur catalogue</span></li>
             <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"/></svg><span>1re année d'hébergement et de maintenance</span></li>
           </ul>
           <p class="cta__note">Offre réservée aux distributeurs sous contrat de distribution.</p>
-          <div class="cta__contact">
+        </div>
+
+        <div class="cta__card contact-card">
+          <h3 class="contact-card__title">Réservez votre place</h3>
+          <p class="contact-card__text">Pour réserver votre place early bird et recevoir le contrat de distribution, contactez l'équipe Secutop.</p>
+          <a class="btn btn--primary btn--block contact-card__cta" href="https://www.secutop.fr/contact/" target="_blank" rel="noopener">Contacter Secutop<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a>
+          <div class="contact-card__alt">
+            <p>Vous préférez appeler ou écrire&nbsp;?</p>
             <a href="tel:+33950276188"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-phone"/></svg>09&nbsp;50&nbsp;27&nbsp;61&nbsp;88</a>
             <a href="mailto:contact@secutop.fr"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"/></svg>contact@secutop.fr</a>
           </div>
         </div>
-
-        <form class="cta__form form" id="contact-form" action="contact.php" method="post">
-          <div>
-            <h3 class="form__title">Demande d'information</h3>
-            <p class="form__intro">Nous vous rappelons pour vous présenter le contrat de distribution.</p>
-          </div>
-          <div class="form__grid">
-            <div class="field">
-              <label for="f-nom">Nom et prénom</label>
-              <input id="f-nom" name="nom" type="text" autocomplete="name" required maxlength="120">
-            </div>
-            <div class="field">
-              <label for="f-organisation">Organisation</label>
-              <input id="f-organisation" name="organisation" type="text" autocomplete="organization" required maxlength="150">
-            </div>
-            <div class="field">
-              <label for="f-email">E-mail professionnel</label>
-              <input id="f-email" name="email" type="email" autocomplete="email" required maxlength="150">
-            </div>
-            <div class="field">
-              <label for="f-telephone">Téléphone</label>
-              <input id="f-telephone" name="telephone" type="tel" autocomplete="tel" required maxlength="30">
-            </div>
-            <div class="field">
-              <label for="f-structure">Type de structure</label>
-              <select id="f-structure" name="structure" required>
-                <option value="">Sélectionnez</option>
-                <option>Réseau</option>
-                <option>IPRP</option>
-                <option>Cabinet de prévention</option>
-                <option>Organisation à adhérents</option>
-                <option>Autre</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="f-clients">Clients ou adhérents <span class="optional">(facultatif)</span></label>
-              <select id="f-clients" name="clients">
-                <option value="">Sélectionnez</option>
-                <option>Moins de 50</option>
-                <option>De 50 à 200</option>
-                <option>De 200 à 1 000</option>
-                <option>Plus de 1 000</option>
-              </select>
-            </div>
-          </div>
-          <div class="field">
-            <label for="f-message">Votre projet <span class="optional">(facultatif)</span></label>
-            <textarea id="f-message" name="message" rows="3" maxlength="3000"></textarea>
-          </div>
-          <div class="hp" aria-hidden="true">
-            <label for="f-site">Ne pas remplir ce champ</label>
-            <input id="f-site" name="site_web" type="text" tabindex="-1" autocomplete="off">
-          </div>
-          <div class="consent">
-            <input id="f-consent" name="consentement" type="checkbox" value="oui" required>
-            <label for="f-consent">J'accepte que Secutop utilise ces informations pour me recontacter au sujet de l'offre distributeur. Voir la <a href="mentions-legales.html#donnees">politique de confidentialité</a>.</label>
-          </div>
-          <button class="btn btn--primary btn--block" type="submit">Envoyer ma demande</button>
-          <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
-        </form>
       </div>
     </section>
   </main>

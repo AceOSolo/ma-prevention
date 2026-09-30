@@ -44,20 +44,47 @@ test("/index.html redirige vers /", async ({ request }) => {
   expect(new URL(res.headers()["location"], BASE).pathname).toBe("/");
 });
 
-test("www.ma-prevention.fr redirige vers ma-prevention.fr", async ({ request }) => {
-  const res = await request.get(`${BASE}/mentions-legales.html`, {
-    maxRedirects: 0,
-    headers: { Host: "www.ma-prevention.fr" },
-  });
-  expect(res.status()).toBe(301);
-  expect(res.headers()["location"]).toBe("https://ma-prevention.fr/mentions-legales.html");
+test("aucune redirection entre www et le domaine nu (servis tous les deux en HTTPS)", async ({ request }) => {
+  for (const host of ["www.ma-prevention.fr", "ma-prevention.fr"]) {
+    // X-Forwarded-Proto simule la terminaison HTTPS du frontal OVH.
+    const res = await request.get(`${BASE}/mentions-legales.html`, {
+      maxRedirects: 0,
+      headers: { Host: host, "X-Forwarded-Proto": "https" },
+    });
+    expect(res.status(), host).toBe(200);
+  }
 });
 
-test("HTTP (port 80) redirige vers HTTPS", async ({ request }) => {
+test("HTTP (port 80) redirige vers HTTPS sans changer de domaine", async ({ request }) => {
   test.skip(!HTTP, "HTACCESS_HTTP_URL non défini");
-  const res = await request.get(`${HTTP}/tarifs?x=1`, { maxRedirects: 0, headers: { Host: "ma-prevention.fr" } });
-  expect(res.status()).toBe(301);
-  expect(res.headers()["location"]).toBe("https://ma-prevention.fr/tarifs?x=1");
+  for (const host of ["ma-prevention.fr", "www.ma-prevention.fr"]) {
+    const res = await request.get(`${HTTP}/tarifs?x=1`, { maxRedirects: 0, headers: { Host: host } });
+    expect(res.status(), host).toBe(301);
+    expect(res.headers()["location"]).toBe(`https://${host}/tarifs?x=1`);
+  }
+});
+
+test("pas de boucle de redirection : l'adresse HTTPS obtenue répond directement", async ({ request }) => {
+  test.skip(!HTTP, "HTACCESS_HTTP_URL non défini");
+  for (const host of ["www.ma-prevention.fr", "ma-prevention.fr"]) {
+    let url = `${HTTP}/`;
+    let headers = { Host: host };
+    let hops = 0;
+    for (;;) {
+      const res = await request.get(url, { maxRedirects: 0, headers });
+      if (res.status() !== 301) {
+        expect(res.status(), host).toBe(200);
+        break;
+      }
+      hops += 1;
+      expect(hops, `boucle détectée sur ${host}`).toBeLessThanOrEqual(1);
+      const target = new URL(res.headers()["location"]);
+      expect(target.host).toBe(host);
+      // La requête HTTPS arrive au serveur via le frontal (proxy) : même port, en-tête de protocole.
+      url = `${HTTP}${target.pathname}${target.search}`;
+      headers = { Host: target.host, "X-Forwarded-Proto": "https" };
+    }
+  }
 });
 
 test("page inexistante : 404 personnalisée", async ({ request }) => {
@@ -67,10 +94,20 @@ test("page inexistante : 404 personnalisée", async ({ request }) => {
 });
 
 test("fichiers internes non accessibles", async ({ request }) => {
-  expect((await request.get(`${BASE}/README.md`)).status()).toBe(403);
-  expect((await request.get(`${BASE}/.htaccess`)).status()).toBe(403);
-  expect((await request.get(`${BASE}/tests/site.spec.js`)).status()).toBe(404);
-  expect((await request.get(`${BASE}/tests/`)).status()).toBe(404);
+  const blocked = async (path) => (await request.get(`${BASE}${path}`, { maxRedirects: 0 })).status();
+  expect(await blocked("/README.md")).toBe(403);
+  expect([403, 404]).toContain(await blocked("/.htaccess"));
+  expect([403, 404]).toContain(await blocked("/.gitignore"));
+  expect(await blocked("/tests/site.spec.js")).toBe(404);
+  expect(await blocked("/tests/")).toBe(404);
+  expect(await blocked("/tests/package.json")).toBe(404);
+});
+
+test("dépôt Git non exposé (déploiement Git OVH)", async ({ request }) => {
+  for (const path of ["/.git/", "/.git/config", "/.git/HEAD", "/.git/index"]) {
+    expect((await request.get(`${BASE}${path}`, { maxRedirects: 0 })).status(), path).toBe(404);
+  }
+  expect((await request.get(`${BASE}/CNAME`)).status()).toBe(404);
 });
 
 test("cache et compression", async ({ request }) => {

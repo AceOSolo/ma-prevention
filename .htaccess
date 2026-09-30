@@ -27,7 +27,11 @@ AddType font/woff2 .woff2
 <FilesMatch "(^\.|\.md$)">
   Require all denied
 </FilesMatch>
+# Déploiement Git OVH : le dépôt entier est copié sur l'hébergement.
+# Masque le dossier des tests et tout chemin commençant par un point
+# (.git, .gitignore...), sauf .well-known (certificats SSL).
 RedirectMatch 404 ^/tests(/|$)
+RedirectMatch 404 (^|/)\.(?!well-known(/|$))
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"

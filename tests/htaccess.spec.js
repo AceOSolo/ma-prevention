@@ -67,10 +67,20 @@ test("page inexistante : 404 personnalisée", async ({ request }) => {
 });
 
 test("fichiers internes non accessibles", async ({ request }) => {
-  expect((await request.get(`${BASE}/README.md`)).status()).toBe(403);
-  expect((await request.get(`${BASE}/.htaccess`)).status()).toBe(403);
-  expect((await request.get(`${BASE}/tests/site.spec.js`)).status()).toBe(404);
-  expect((await request.get(`${BASE}/tests/`)).status()).toBe(404);
+  const blocked = async (path) => (await request.get(`${BASE}${path}`, { maxRedirects: 0 })).status();
+  expect(await blocked("/README.md")).toBe(403);
+  expect([403, 404]).toContain(await blocked("/.htaccess"));
+  expect([403, 404]).toContain(await blocked("/.gitignore"));
+  expect(await blocked("/tests/site.spec.js")).toBe(404);
+  expect(await blocked("/tests/")).toBe(404);
+  expect(await blocked("/tests/package.json")).toBe(404);
+});
+
+test("dépôt Git non exposé (déploiement Git OVH)", async ({ request }) => {
+  for (const path of ["/.git/", "/.git/config", "/.git/HEAD", "/.git/index"]) {
+    expect((await request.get(`${BASE}${path}`, { maxRedirects: 0 })).status(), path).toBe(404);
+  }
+  expect((await request.get(`${BASE}/CNAME`)).status()).toBe(404);
 });
 
 test("cache et compression", async ({ request }) => {

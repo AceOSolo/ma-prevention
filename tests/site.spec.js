@@ -1,7 +1,7 @@
 // Tests fonctionnels de la page : liens, boutons, défilement, interactions, formulaire.
 const { test, expect } = require("@playwright/test");
 const fs = require("fs");
-const { waitForScrollEnd, expectSectionInView, plain, findMail, watchErrors } = require("./helpers");
+const { waitForScrollEnd, expectSectionInView, plain, watchErrors } = require("./helpers");
 
 const isMobile = (testInfo) => testInfo.project.name === "mobile";
 
@@ -28,7 +28,7 @@ test.describe("Chargement", () => {
     expect(errors).toEqual([]);
   });
 
-  for (const url of ["/mentions-legales.html", "/merci.html", "/404.html"]) {
+  for (const url of ["/mentions-legales.html", "/404.html"]) {
     test(`page annexe ${url} sans erreur`, async ({ page }) => {
       const errors = watchErrors(page);
       const res = await page.goto(url);
@@ -142,16 +142,9 @@ test.describe("Liens et boutons", () => {
     const top = await page.locator("#donnees").evaluate((el) => el.getBoundingClientRect().top);
     const headerBottom = await page.locator(".site-header").evaluate((el) => el.getBoundingClientRect().bottom);
     expect(top).toBeGreaterThanOrEqual(headerBottom - 1);
-
-    await page.goto("/");
-    await page.locator('.consent a[href="mentions-legales.html#donnees"]').click();
-    await expect(page).toHaveURL(/#donnees$/);
   });
 
-  test("page de confirmation et page 404 : bouton de retour", async ({ page }) => {
-    await page.goto("/merci.html");
-    await page.locator('a:has-text("Retour à l\'offre")').click();
-    await expect(page).toHaveURL(/\/(index\.html)?$/);
+  test("page 404 : bouton de retour", async ({ page }) => {
     await page.goto("/404.html");
     await page.locator('a:has-text("Voir l\'offre distributeur")').click();
     await expect(page.locator("#hero-title")).toBeVisible();
@@ -200,18 +193,13 @@ test.describe("Liens vers secutop.fr", () => {
     });
   }
 
-  test("lien de la FAQ et de la page de confirmation", async ({ page }) => {
+  test("lien de la FAQ", async ({ page }) => {
     await page.goto("/");
     const item = page.locator(".faq-item").nth(1);
     await item.locator("summary").click();
     const popupPromise = page.waitForEvent("popup");
     await item.locator(`a[href="${SECUSOFT}"]`).click();
     expect((await popupPromise).url()).toBe(SECUSOFT);
-
-    await page.goto("/merci.html");
-    const confirm = page.locator(`a[href="${SECUSOFT}"]`);
-    await expect(confirm).toBeVisible();
-    await expect(confirm).toHaveAttribute("target", "_blank");
   });
 });
 
@@ -481,124 +469,75 @@ test.describe("Compteur de places early bird", () => {
   });
 });
 
-test.describe("Formulaire de contact", () => {
-  async function fillValid(page, org) {
-    await page.locator("#f-nom").fill("Jeanne Martin");
-    await page.locator("#f-organisation").fill(org);
-    await page.locator("#f-email").fill("jeanne.martin@example.com");
-    await page.locator("#f-telephone").fill("06 12 34 56 78");
-    await page.locator("#f-structure").selectOption("IPRP");
-    await page.locator("#f-clients").selectOption("De 50 à 200");
-    await page.locator("#f-message").fill("Nous souhaitons proposer SECUSOFT à nos adhérents.");
-    await page.locator("#f-consent").check();
-  }
+test.describe("Contact", () => {
+  const CONTACT = "https://www.secutop.fr/contact/";
 
-  function countPosts(page) {
-    const counter = { n: 0 };
-    page.on("request", (r) => {
-      if (r.url().includes("contact.php") && r.method() === "POST") counter.n += 1;
-    });
-    return counter;
-  }
-
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/#contact");
-  });
-
-  test("envoi vide bloqué, premier champ en erreur", async ({ page }) => {
-    const posts = countPosts(page);
-    await page.locator("#contact-form button[type=submit]").click();
-    await page.waitForTimeout(300);
-    expect(posts.n).toBe(0);
-    expect(await page.locator("#contact-form").evaluate((f) => f.checkValidity())).toBe(false);
-    await expect(page.locator("#f-nom")).toBeFocused();
-    await expect(page.locator("#form-status")).toBeEmpty();
-  });
-
-  test("e-mail invalide bloqué", async ({ page }) => {
-    const posts = countPosts(page);
-    await fillValid(page, "Test e-mail invalide");
-    await page.locator("#f-email").fill("pas-un-email");
-    await page.locator("#contact-form button[type=submit]").click();
-    await page.waitForTimeout(300);
-    expect(posts.n).toBe(0);
-    expect(await page.locator("#f-email").evaluate((i) => i.validity.valid)).toBe(false);
-  });
-
-  test("consentement obligatoire", async ({ page }) => {
-    const posts = countPosts(page);
-    await fillValid(page, "Test consentement");
-    await page.locator("#f-consent").uncheck();
-    await page.locator("#contact-form button[type=submit]").click();
-    await page.waitForTimeout(300);
-    expect(posts.n).toBe(0);
-  });
-
-  test("envoi réussi de bout en bout : message, remise à zéro, e-mail reçu", async ({ page }, testInfo) => {
-    const org = `Cabinet Test ${testInfo.project.name} ${Date.now()}`;
-    await fillValid(page, org);
-    const response = page.waitForResponse((r) => r.url().includes("contact.php"));
-    await page.locator("#contact-form button[type=submit]").click();
-    expect((await response).status()).toBe(200);
-    const status = page.locator("#form-status");
-    await expect(status).toHaveClass(/is-success/);
-    await expect(status).toContainText("Merci, votre demande a bien été envoyée");
-    await expect(page.locator("#f-nom")).toHaveValue("");
-    await expect(page.locator("#f-consent")).not.toBeChecked();
-
-    await expect.poll(() => findMail(org), { timeout: 5000 }).not.toBeNull();
-    const mail = findMail(org);
-    expect(mail).toContain("To: contact@secutop.fr");
-    expect(mail).toContain("Reply-To: jeanne.martin@example.com");
-    expect(mail).toContain("Type de structure : IPRP");
-    expect(mail).toContain("Clients ou adhérents : De 50 à 200");
-    expect(mail).toContain("Nous souhaitons proposer SECUSOFT à nos adhérents.");
-  });
-
-  test("bouton désactivé pendant l'envoi puis réactivé", async ({ page }) => {
-    await page.route("**/contact.php", async (route) => {
-      await new Promise((r) => setTimeout(r, 800));
-      await route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
-    });
-    await fillValid(page, "Test attente");
-    const button = page.locator("#contact-form button[type=submit]");
-    await button.click();
-    await expect(button).toBeDisabled();
-    await expect(button).toHaveText("Envoi en cours…");
-    await expect(page.locator("#form-status")).toHaveClass(/is-success/);
-    await expect(button).toBeEnabled();
-    await expect(button).toHaveText("Envoyer ma demande");
-  });
-
-  test("erreur serveur : message affiché, saisie conservée", async ({ page }) => {
-    await page.route("**/contact.php", (route) =>
-      route.fulfill({ status: 422, contentType: "application/json", body: '{"ok":false,"message":"Merci de vérifier les champs suivants : e-mail."}' })
+  test.beforeEach(async ({ context }) => {
+    await context.route("https://www.secutop.fr/**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<title>Contact Secutop</title>" })
     );
-    await fillValid(page, "Test erreur");
-    await page.locator("#contact-form button[type=submit]").click();
-    const status = page.locator("#form-status");
-    await expect(status).toHaveClass(/is-error/);
-    await expect(status).toHaveText("Merci de vérifier les champs suivants : e-mail.");
-    await expect(page.locator("#f-nom")).toHaveValue("Jeanne Martin");
   });
 
-  test("réponse illisible ou réseau coupé : message de repli", async ({ page }) => {
-    await page.route("**/contact.php", (route) => route.fulfill({ status: 500, contentType: "text/html", body: "<h1>Erreur</h1>" }));
-    await fillValid(page, "Test HTML");
-    await page.locator("#contact-form button[type=submit]").click();
-    await expect(page.locator("#form-status")).toHaveText(/L'envoi n'a pas abouti/);
-
-    await page.unroute("**/contact.php");
-    await page.route("**/contact.php", (route) => route.abort("internetdisconnected"));
-    await page.locator("#contact-form button[type=submit]").click();
-    await expect(page.locator("#form-status")).toHaveText(/L'envoi n'a pas abouti/);
-    await expect(page.locator("#contact-form button[type=submit]")).toBeEnabled();
+  test("le bouton « Contacter Secutop » ouvre la page contact de secutop.fr", async ({ page }) => {
+    await page.goto("/#contact");
+    const cta = page.locator(".contact-card__cta");
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute("href", CONTACT);
+    await expect(cta).toHaveAttribute("target", "_blank");
+    await expect(cta).toHaveAttribute("rel", /noopener/);
+    await expect(cta).toHaveAccessibleName(/Contacter Secutop.*nouvel onglet/);
+    const popupPromise = page.waitForEvent("popup");
+    await cta.click();
+    const popup = await popupPromise;
+    await popup.waitForLoadState();
+    expect(popup.url()).toBe(CONTACT);
+    expect(page.url()).not.toContain("secutop.fr");
   });
 
-  test("champ piège invisible et hors tabulation", async ({ page }) => {
-    const hp = page.locator("#f-site");
-    expect(await hp.getAttribute("tabindex")).toBe("-1");
-    await expect(hp).not.toBeInViewport();
+  test("chaque bouton d'inscription mène au bouton de contact", async ({ page }, testInfo) => {
+    await page.goto("/");
+    const selectors = [".hero__actions .btn--primary", ".price-card .btn--secondary", ".price-card--featured .btn"];
+    if (testInfo.project.name === "desktop") selectors.unshift(".site-header__cta");
+    for (const selector of selectors) {
+      await page.locator(selector).click();
+      await expectSectionInView(page, "contact");
+      // Desktop : bouton de la carte ; mobile : bouton placé sous le prix.
+      const cta = testInfo.project.name === "desktop" ? ".contact-card__cta" : ".cta__mobile-cta";
+      await expect(page.locator(cta)).toBeInViewport();
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    }
+  });
+
+  test("bouton mobile visible seulement sur mobile, même destination", async ({ page }, testInfo) => {
+    await page.goto("/#contact");
+    const mobileCta = page.locator(".cta__mobile-cta");
+    await expect(mobileCta).toHaveAttribute("href", CONTACT);
+    await expect(mobileCta).toHaveAttribute("target", "_blank");
+    if (testInfo.project.name === "desktop") {
+      await expect(mobileCta).toBeHidden();
+    } else {
+      const popupPromise = page.waitForEvent("popup");
+      await mobileCta.click();
+      expect((await popupPromise).url()).toBe(CONTACT);
+    }
+  });
+
+  test("téléphone et e-mail proposés en alternative", async ({ page }) => {
+    await page.goto("/#contact");
+    const alt = page.locator(".contact-card__alt");
+    await expect(alt.locator('a[href="tel:+33950276188"]')).toBeVisible();
+    await expect(alt.locator('a[href="mailto:contact@secutop.fr"]')).toBeVisible();
+  });
+
+  test("aucun formulaire ni envoi de données depuis le site", async ({ page }) => {
+    const posts = [];
+    page.on("request", (r) => {
+      if (r.method() !== "GET") posts.push(r.url());
+    });
+    await page.goto("/");
+    expect(await page.locator("form").count()).toBe(0);
+    await page.locator(".contact-card__cta").scrollIntoViewIfNeeded();
+    expect(posts).toEqual([]);
   });
 });
 
@@ -609,33 +548,6 @@ test.describe("Sans JavaScript", () => {
     const context = await browser.newContext({ ...testInfo.project.use, baseURL, javaScriptEnabled: false, reducedMotion: "reduce" });
     return { context, page: await context.newPage() };
   }
-
-  test("le formulaire reste utilisable : validation native puis page de confirmation", async ({ browser, baseURL }, testInfo) => {
-    const { context, page } = await noJsPage(browser, baseURL, testInfo);
-    await page.goto("/#contact");
-    const submit = page.locator("#contact-form button[type=submit]");
-    await submit.focus();
-    await page.keyboard.press("Enter");
-    await page.waitForTimeout(300);
-    expect(page.url()).not.toContain("contact.php");
-    expect(page.url()).not.toContain("merci.html");
-
-    const org = `Sans JS ${testInfo.project.name} ${Date.now()}`;
-    await page.locator("#f-nom").fill("Paul Durand");
-    await page.locator("#f-organisation").fill(org);
-    await page.locator("#f-email").fill("paul@example.com");
-    await page.locator("#f-telephone").fill("0612345678");
-    await page.locator("#f-structure").selectOption("Réseau");
-    await page.locator("#f-consent").focus();
-    await page.keyboard.press("Space");
-    expect(await page.locator("#f-consent").isChecked()).toBe(true);
-    await submit.focus();
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/merci\.html$/);
-    await expect(page.locator("h1")).toHaveText("Merci, votre demande est envoyée");
-    await expect.poll(() => findMail(org), { timeout: 5000 }).not.toBeNull();
-    await context.close();
-  });
 
   test("les ancres et la FAQ fonctionnent sans JavaScript", async ({ browser, baseURL }, testInfo) => {
     const { context, page } = await noJsPage(browser, baseURL, testInfo);
@@ -690,8 +602,7 @@ test.describe("Clavier et accessibilité", () => {
     }
     expect(seen).toContain("brand-input");
     expect(seen).toContain("sim-packs");
-    expect(seen).toContain("f-consent");
-    expect(seen.some((k) => k.startsWith("button:Envoyer ma demande"))).toBe(true);
+    expect(seen.some((k) => k.includes("secutop.fr/contact"))).toBe(true);
     expect(seen.some((k) => k.includes("mentions-legales.html"))).toBe(true);
     expect(seen).not.toContain("f-site");
     if (isMobile(testInfo)) expect(seen.some((k) => k.startsWith("button:"))).toBe(true);

@@ -1,8 +1,4 @@
-const fs = require("fs");
-const path = require("path");
 const { expect } = require("@playwright/test");
-
-const MAIL_LOG = path.join(__dirname, ".tmp", "mail.log");
 
 /** Attend que le défilement (y compris le défilement doux) soit terminé. */
 async function waitForScrollEnd(page) {
@@ -59,16 +55,6 @@ function plain(text) {
   return (text || "").replace(/[  ]/g, " ").trim();
 }
 
-function readMailLog() {
-  return fs.existsSync(MAIL_LOG) ? fs.readFileSync(MAIL_LOG, "utf8") : "";
-}
-
-/** Renvoie le bloc d'e-mail qui contient le marqueur, ou null. */
-function findMail(marker) {
-  const blocks = readMailLog().split("=== MAIL ");
-  return blocks.find((b) => b.includes(marker)) || null;
-}
-
 /** Collecte les erreurs console, erreurs JS et requêtes en échec d'une page. */
 function watchErrors(page) {
   const errors = [];
@@ -83,4 +69,4 @@ function watchErrors(page) {
   return errors;
 }
 
-module.exports = { waitForScrollEnd, expectSectionInView, plain, readMailLog, findMail, watchErrors };
+module.exports = { waitForScrollEnd, expectSectionInView, plain, watchErrors };

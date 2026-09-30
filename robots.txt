@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /contact.php
 
-Sitemap: https://www.ma-prevention.fr/sitemap.xml
+Sitemap: https://ma-prevention.fr/sitemap.xml

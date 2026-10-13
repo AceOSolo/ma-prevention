@@ -1,8 +1,8 @@
 # ma-prevention.fr
 
-Site vitrine (one-page) de l'offre distributeur **SECUSOFT en marque blanche**, édité par Secutop.
+Site vitrine (one-page) de l'offre distributeur **SECUSOFT en marque blanche** : la plateforme de prévention des risques QHSE et ses 10 packs, proposée par l'éditeur **SimplX**.
 
-Site statique en HTML, CSS et JavaScript, sans framework ni étape de compilation. Les demandes de contact renvoient vers la page contact de secutop.fr (https://www.secutop.fr/contact/).
+Site statique en HTML, CSS et JavaScript, sans framework ni étape de compilation. Les demandes de contact renvoient vers la page contact de SimplX (https://www.simplx.fr/contact/).
 
 ## Structure
 
@@ -14,10 +14,10 @@ mentions-legales.html   Mentions légales et politique de confidentialité
 robots.txt, sitemap.xml Référencement
 favicon.ico
 assets/
-  css/styles.css        Styles (charte Secutop : Rubik, #1FABE3, #00487B)
+  css/styles.css        Styles (charte SECUSOFT : Rubik, #1FABE3, #00487B)
   js/main.js            Menu mobile, aperçu de marque, simulateur, compteur de places
   fonts/                Rubik auto-hébergée (licence SIL OFL)
-  img/                  Logos SECUSOFT et Secutop, favicons, image de partage
+  img/                  Logo SECUSOFT, favicons, image de partage
 ```
 
 ## Réglages courants
@@ -25,9 +25,10 @@ assets/
 | Besoin | Où modifier |
 |---|---|
 | Nombre de places early bird restantes | `index.html`, attribut `data-places="20"` sur la balise `<body>`. À 0, le compteur disparaît. |
-| Lien du bouton « Contacter Secutop » | `index.html`, section `#contact` |
+| Lien du bouton « Contacter SimplX » | `index.html`, section `#contact` |
+| Liste et contenu des 10 packs | `index.html`, section `#packs` (et question « Quels packs… » de la FAQ) |
 | Tarifs et textes | `index.html` (sections `#tarifs`, `#modele`, `#abonnement`, `#synthese`, `#faq`) |
-| Prix du pack utilisé par le simulateur | `assets/js/main.js`, constante `PRIX_PACK` |
+| Prix du pack utilisé par le simulateur (pack DUERP) | `assets/js/main.js`, constante `PRIX_PACK` |
 
 Après une modification de `styles.css` ou `main.js`, incrémentez le paramètre `?v=1` dans les balises `<link>` et `<script>` pour que les navigateurs rechargent les fichiers.
 
@@ -39,15 +40,15 @@ Ce qui est fusionné dans `main` est en ligne après quelques minutes.
 
 Limites de GitHub Pages, qui ne sert que des fichiers statiques :
 
-- Pas de PHP : le site n'a donc pas de formulaire, le bouton de contact mène à https://www.secutop.fr/contact/.
+- Pas de PHP : le site n'a donc pas de formulaire, le bouton de contact mène à https://www.simplx.fr/contact/.
 - Le `.htaccess` est ignoré (redirections, en-têtes de sécurité). GitHub gère lui-même le HTTPS (option *Enforce HTTPS* dans Settings > Pages). Le `.htaccess` reste utile si le site passe un jour sur l'hébergement web OVH.
 
 Les sous-domaines des marques blanches (`votre-marque.ma-prevention.fr`) sont gérés par la plateforme SECUSOFT et ne dépendent pas de ce site.
 
 ## Avant la mise en production
 
-- Compléter les champs marqués `[à compléter]` dans `mentions-legales.html` (raison sociale, capital, RCS, directeur de la publication).
-- Vérifier les coordonnées de contact (adresse, téléphone, e-mail).
+- Compléter le directeur de la publication (`[à compléter]`) dans `mentions-legales.html` et vérifier l'immatriculation RCS de SimplX.
+- Vérifier les coordonnées de contact de SimplX (adresse, e-mail) ; ajouter un numéro de téléphone si souhaité.
 
 ## Tester en local
 
@@ -65,7 +66,8 @@ Le dossier `tests/` contient une suite Playwright (Chromium, format desktop 1440
 - chaque lien et bouton (ancres, menu, CTA, pied de page, mentions légales), sans élément masqué ou recouvert ;
 - défilement : position des sections sous l'en-tête collant, accès direct par URL, molette, clavier, tactile, absence de défilement horizontal de 320 à 1920 px ;
 - menu mobile, aperçu de marque, simulateur (souris et clavier), FAQ, compteur de places ;
-- bouton de contact et liens vers secutop.fr (ouverture dans un nouvel onglet vers la bonne adresse) ;
+- section des 10 packs ;
+- bouton de contact et liens vers simplx.fr (ouverture dans un nouvel onglet vers la bonne adresse), aucune mention de Secutop ;
 - clavier et accessibilité (lien d'évitement, focus visible, audit axe) ;
 - si un Apache est disponible, le `.htaccess`.
 

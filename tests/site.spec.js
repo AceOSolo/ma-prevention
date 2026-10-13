@@ -82,10 +82,10 @@ test.describe("Liens et boutons", () => {
     const tel = hrefs.filter((h) => h.startsWith("tel:"));
     const mail = hrefs.filter((h) => h.startsWith("mailto:"));
     const ext = hrefs.filter((h) => /^https?:/.test(h));
-    expect(tel.length).toBeGreaterThan(0);
-    expect(new Set(tel)).toEqual(new Set(["tel:+33950276188"]));
-    expect(new Set(mail)).toEqual(new Set(["mailto:contact@secutop.fr"]));
-    for (const h of ext) expect(h).toMatch(/^https:\/\//);
+    expect(tel).toEqual([]);
+    expect(mail.length).toBeGreaterThan(0);
+    expect(new Set(mail)).toEqual(new Set(["mailto:contact@simplx.fr"]));
+    for (const h of ext) expect(h).toMatch(/^https:\/\/www\.simplx\.fr\//);
     expect(hrefs.filter((h) => h === "" || h === "#")).toEqual([]);
   });
 
@@ -113,6 +113,9 @@ test.describe("Liens et boutons", () => {
       [".price-card--featured .btn", "contact"],
       ['.faq__head a[href="#contact"]', "contact"],
       ['.site-footer__nav a[href="#principe"]', "principe"],
+      ['.site-footer__nav a[href="#packs"]', "packs"],
+      [".hero__link", "packs"],
+      ['.text-link[href="#packs"]', "packs"],
       ['.site-footer__nav a[href="#tarifs"]', "tarifs"],
       ['.site-footer__nav a[href="#modele"]', "modele"],
       ['.site-footer__nav a[href="#faq"]', "faq"],
@@ -151,55 +154,101 @@ test.describe("Liens et boutons", () => {
   });
 });
 
-test.describe("Liens vers secutop.fr", () => {
-  const SECUSOFT = "https://www.secutop.fr/secusoft/";
+test.describe("SimplX, éditeur et vendeur", () => {
+  const CONTACT = "https://www.simplx.fr/contact/";
 
   test.beforeEach(async ({ context }) => {
     // Réponse locale : pas de dépendance au vrai site pendant les tests.
-    await context.route("https://www.secutop.fr/**", (route) =>
-      route.fulfill({ status: 200, contentType: "text/html", body: "<title>Secusoft</title>" })
+    await context.route("https://www.simplx.fr/**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<title>Contact SimplX</title>" })
     );
   });
 
-  test("liens SECUSOFT présents, dans un nouvel onglet, annoncés aux lecteurs d'écran", async ({ page }) => {
-    await page.goto("/");
-    // Le lien de la FAQ n'est exposé que question ouverte.
-    await page.$$eval("details", (ds) => ds.forEach((d) => (d.open = true)));
-    const links = page.locator(`a[href="${SECUSOFT}"]`);
-    await expect(links).toHaveCount(5);
-    for (let i = 0; i < 5; i++) {
-      const link = links.nth(i);
-      await expect(link).toHaveAttribute("target", "_blank");
-      await expect(link).toHaveAttribute("rel", /noopener/);
-      await expect(link).toHaveAccessibleName(/nouvel onglet/);
-    }
-  });
-
-  for (const [name, selector] of [
-    ["hero", ".hero__link"],
-    ["carte offre SaaS", ".text-link"],
-    ["section plateforme", ".platform__cta"],
-    ["pied de page", ".footer-ext"],
-  ]) {
-    test(`le lien « ${name} » ouvre la page SECUSOFT sans quitter l'offre`, async ({ page }) => {
-      await page.goto("/");
-      const popupPromise = page.waitForEvent("popup");
-      await page.locator(selector).click();
-      const popup = await popupPromise;
-      await popup.waitForLoadState();
-      expect(popup.url()).toBe(SECUSOFT);
-      expect(page.url()).not.toContain("secutop.fr");
-      await popup.close();
+  for (const url of ["/", "/mentions-legales.html", "/404.html"]) {
+    test(`aucune mention de Secutop sur ${url}`, async ({ page, request }) => {
+      const source = await (await request.get(url)).text();
+      expect(source).not.toMatch(/secutop/i);
+      await page.goto(url);
+      expect(await page.locator("body").innerText()).not.toMatch(/secutop/i);
+      expect(await page.locator("img").evaluateAll((imgs) => imgs.map((i) => i.src).filter((s) => /secutop/i.test(s)))).toEqual([]);
     });
   }
 
-  test("lien de la FAQ", async ({ page }) => {
+  test("SimplX présenté comme éditeur dans le hero, le principe et le pied de page", async ({ page }) => {
     await page.goto("/");
-    const item = page.locator(".faq-item").nth(1);
-    await item.locator("summary").click();
+    await expect(page.locator(".hero .eyebrow")).toHaveText("Offre distributeur SimplX");
+    await expect(page.locator(".hero__text")).toContainText("SimplX");
+    await expect(page.locator(".flow__card").first().locator(".flow__name")).toHaveText("SIMPLX");
+    await expect(page.locator(".vendor__name")).toHaveText("SimplX");
+    await expect(page.locator(".site-footer__bottom")).toContainText("© 2026 SimplX");
+  });
+
+  test("liens vers la page contact SimplX : nouvel onglet, annoncés aux lecteurs d'écran", async ({ page }) => {
+    await page.goto("/");
+    const links = page.locator(`a[href="${CONTACT}"]`);
+    await expect(links).toHaveCount(3);
+    for (let i = 0; i < 3; i++) {
+      const link = links.nth(i);
+      await expect(link).toHaveAttribute("target", "_blank");
+      await expect(link).toHaveAttribute("rel", /noopener/);
+      // Le bouton mobile est masqué sur desktop : pas de nom accessible à vérifier.
+      if (await link.isVisible()) await expect(link).toHaveAccessibleName(/nouvel onglet/);
+    }
+  });
+
+  test("le lien contact du pied de page ouvre la page contact SimplX sans quitter l'offre", async ({ page }) => {
+    await page.goto("/");
     const popupPromise = page.waitForEvent("popup");
-    await item.locator(`a[href="${SECUSOFT}"]`).click();
-    expect((await popupPromise).url()).toBe(SECUSOFT);
+    await page.locator(".footer-ext").click();
+    const popup = await popupPromise;
+    await popup.waitForLoadState();
+    expect(popup.url()).toBe(CONTACT);
+    expect(page.url()).not.toContain("simplx.fr");
+  });
+});
+
+test.describe("Les 10 packs", () => {
+  const PACKS = [
+    "Pack DUERP",
+    "Pack RH",
+    "Pack GED",
+    "Pack AT/MP",
+    "Pack Culture sécurité / HSE",
+    "Pack Entreprises extérieures",
+    "Pack Équipements / EPI / Bâtiments",
+    "Pack Environnement",
+    "Pack Plan d'actions",
+    "Pack IA",
+  ];
+
+  test("chaque pack est présenté avec une accroche et ses fonctionnalités", async ({ page }) => {
+    await page.goto("/#packs");
+    const cards = page.locator(".packs > .card.pack");
+    await expect(cards.locator(".pack__name")).toHaveText(PACKS);
+    for (let i = 0; i < PACKS.length; i++) {
+      await expect(cards.nth(i).locator(".pack__lead")).not.toBeEmpty();
+      expect(await cards.nth(i).locator(".pack__list li").count()).toBeGreaterThanOrEqual(3);
+    }
+    await expect(page.locator(".pack--base .pack__name")).toHaveText("Inclus avec chaque pack");
+  });
+
+  test("la FAQ liste les mêmes packs", async ({ page }) => {
+    await page.goto("/");
+    const item = page.locator(".faq-item", { hasText: "Quels packs" });
+    await item.locator("summary").click();
+    const answer = await item.locator(".faq-item__answer").innerText();
+    for (const name of PACKS) expect(answer).toContain(name.replace("Pack ", ""));
+    await item.locator('a[href="#packs"]').click();
+    await expectSectionInView(page, "packs");
+  });
+
+  test("grille des packs : 1, 2 puis 3 colonnes", async ({ page }) => {
+    await page.goto("/#packs");
+    for (const [width, cols] of [[390, 1], [800, 2], [1440, 3]]) {
+      await page.setViewportSize({ width, height: 900 });
+      const n = await page.locator(".packs").evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+      expect(n, `colonnes à ${width}px`).toBe(cols);
+    }
   });
 });
 
@@ -410,9 +459,9 @@ test.describe("FAQ", () => {
   test("chaque question s'ouvre et se referme au clic", async ({ page }) => {
     await page.goto("/");
     const items = page.locator(".faq-item");
-    await expect(items).toHaveCount(6);
+    await expect(items).toHaveCount(8);
     await expect(items.first()).toHaveAttribute("open", "");
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       const item = items.nth(i);
       const summary = item.locator("summary");
       const answer = item.locator(".faq-item__answer");
@@ -470,28 +519,28 @@ test.describe("Compteur de places early bird", () => {
 });
 
 test.describe("Contact", () => {
-  const CONTACT = "https://www.secutop.fr/contact/";
+  const CONTACT = "https://www.simplx.fr/contact/";
 
   test.beforeEach(async ({ context }) => {
-    await context.route("https://www.secutop.fr/**", (route) =>
-      route.fulfill({ status: 200, contentType: "text/html", body: "<title>Contact Secutop</title>" })
+    await context.route("https://www.simplx.fr/**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<title>Contact SimplX</title>" })
     );
   });
 
-  test("le bouton « Contacter Secutop » ouvre la page contact de secutop.fr", async ({ page }) => {
+  test("le bouton « Contacter SimplX » ouvre la page contact de simplx.fr", async ({ page }) => {
     await page.goto("/#contact");
     const cta = page.locator(".contact-card__cta");
     await expect(cta).toBeVisible();
     await expect(cta).toHaveAttribute("href", CONTACT);
     await expect(cta).toHaveAttribute("target", "_blank");
     await expect(cta).toHaveAttribute("rel", /noopener/);
-    await expect(cta).toHaveAccessibleName(/Contacter Secutop.*nouvel onglet/);
+    await expect(cta).toHaveAccessibleName(/Contacter SimplX.*nouvel onglet/);
     const popupPromise = page.waitForEvent("popup");
     await cta.click();
     const popup = await popupPromise;
     await popup.waitForLoadState();
     expect(popup.url()).toBe(CONTACT);
-    expect(page.url()).not.toContain("secutop.fr");
+    expect(page.url()).not.toContain("simplx.fr");
   });
 
   test("chaque bouton d'inscription mène au bouton de contact", async ({ page }, testInfo) => {
@@ -522,11 +571,10 @@ test.describe("Contact", () => {
     }
   });
 
-  test("téléphone et e-mail proposés en alternative", async ({ page }) => {
+  test("e-mail SimplX proposé en alternative", async ({ page }) => {
     await page.goto("/#contact");
     const alt = page.locator(".contact-card__alt");
-    await expect(alt.locator('a[href="tel:+33950276188"]')).toBeVisible();
-    await expect(alt.locator('a[href="mailto:contact@secutop.fr"]')).toBeVisible();
+    await expect(alt.locator('a[href="mailto:contact@simplx.fr"]')).toBeVisible();
   });
 
   test("aucun formulaire ni envoi de données depuis le site", async ({ page }) => {
@@ -602,7 +650,7 @@ test.describe("Clavier et accessibilité", () => {
     }
     expect(seen).toContain("brand-input");
     expect(seen).toContain("sim-packs");
-    expect(seen.some((k) => k.includes("secutop.fr/contact"))).toBe(true);
+    expect(seen.some((k) => k.includes("simplx.fr/contact"))).toBe(true);
     expect(seen.some((k) => k.includes("mentions-legales.html"))).toBe(true);
     expect(seen).not.toContain("f-site");
     if (isMobile(testInfo)) expect(seen.some((k) => k.startsWith("button:"))).toBe(true);

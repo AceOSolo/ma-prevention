@@ -113,7 +113,7 @@ test("cache et compression", async ({ request }) => {
   const css = await request.get(`${BASE}/assets/css/styles.css?v=1`, { headers: { "Accept-Encoding": "gzip" } });
   expect(css.headers()["cache-control"]).toMatch(/max-age=\d{6,}/);
   expect(css.headers()["content-encoding"]).toBe("gzip");
-  const font = await request.get(`${BASE}/assets/fonts/rubik-latin-wght-normal.woff2`);
+  const font = await request.get(`${BASE}/assets/fonts/atkinson-hyperlegible-next-latin.woff2`);
   expect(font.headers()["content-type"]).toBe("font/woff2");
   expect(font.headers()["cache-control"]).toMatch(/max-age=31536000/);
   const html = await request.get(`${BASE}/`);

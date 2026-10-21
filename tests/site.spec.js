@@ -10,7 +10,7 @@ test.describe("Chargement", () => {
     const errors = watchErrors(page);
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await expect(page).toHaveTitle(/SECUSOFT en marque blanche/);
+    await expect(page).toHaveTitle("Ma-prevention | Plateforme de prévention QHSE en marque blanche");
 
     const images = await page.$$eval("img", (imgs) =>
       imgs.map((i) => ({ src: i.getAttribute("src"), ok: i.complete && i.naturalWidth > 0, alt: i.getAttribute("alt") }))
@@ -20,11 +20,13 @@ test.describe("Chargement", () => {
       expect(img.alt, `texte alternatif : ${img.src}`).toBeTruthy();
     }
 
-    const rubik = await page.evaluate(async () => {
+    const fonts = await page.evaluate(async () => {
       await document.fonts.ready;
-      return [...document.fonts].some((f) => f.family.includes("Rubik") && f.status === "loaded");
+      return [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/"/g, ""));
     });
-    expect(rubik, "police Rubik chargée").toBe(true);
+    for (const family of ["Bricolage Grotesque", "Atkinson Hyperlegible Next", "Atkinson Hyperlegible Mono"]) {
+      expect(fonts, `police ${family} chargée`).toContain(family);
+    }
     expect(errors).toEqual([]);
   });
 
@@ -93,8 +95,8 @@ test.describe("Liens et boutons", () => {
     test.skip(isMobile(testInfo), "menu desktop");
     await page.goto("/");
     const links = page.locator(".site-nav a");
-    await expect(links).toHaveCount(6);
-    for (let i = 0; i < 6; i++) {
+    await expect(links).toHaveCount(7);
+    for (let i = 0; i < 7; i++) {
       const href = await links.nth(i).getAttribute("href");
       await links.nth(i).click();
       await expect(page).toHaveURL(new RegExp(href + "$"));
@@ -107,17 +109,23 @@ test.describe("Liens et boutons", () => {
   test("boutons d'action : hero, tarifs, FAQ et pied de page", async ({ page }) => {
     await page.goto("/");
     const cases = [
-      [".hero__actions .btn--primary", "contact"],
-      [".hero__actions .btn--light", "principe"],
+      [".hero__actions .btn--primary", "principe"],
       [".price-card:not(.price-card--featured) .btn", "contact"],
       [".price-card--featured .btn", "contact"],
       ['.faq__head a[href="#contact"]', "contact"],
+      ['#pour-qui .note a[href="#contact"]', "contact"],
       ['.site-footer__nav a[href="#principe"]', "principe"],
+      ['.site-footer__nav a[href="#pour-qui"]', "pour-qui"],
       ['.site-footer__nav a[href="#packs"]', "packs"],
-      [".hero__link", "packs"],
+      [".hero__link", "exemple"],
       ['.text-link[href="#packs"]', "packs"],
+      ['.text-link[href="#referents"]', "referents"],
+      ['.exemple__text .text-link[href="#captures"]', "captures"],
+      ['.site-footer__nav a[href="#referents"]', "referents"],
+      ['.site-footer__nav a[href="#exemple"]', "exemple"],
       ['.site-footer__nav a[href="#tarifs"]', "tarifs"],
       ['.site-footer__nav a[href="#modele"]', "modele"],
+      ['.site-footer__nav a[href="#mise-en-service"]', "mise-en-service"],
       ['.site-footer__nav a[href="#faq"]', "faq"],
     ];
     for (const [selector, id] of cases) {
@@ -174,12 +182,16 @@ test.describe("SimplX, éditeur et vendeur", () => {
     });
   }
 
-  test("SimplX présenté comme éditeur dans le hero, le principe et le pied de page", async ({ page }) => {
+  test("Ma-prevention présentée comme la plateforme, SimplX comme son éditeur", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(".hero .eyebrow")).toHaveText("Offre distributeur SimplX");
-    await expect(page.locator(".hero__text")).toContainText("SimplX");
-    await expect(page.locator(".flow__card").first().locator(".flow__name")).toHaveText("SIMPLX");
-    await expect(page.locator(".vendor__name")).toHaveText("SimplX");
+    await expect(page.locator(".hero .eyebrow")).toHaveText("Plateforme QHSE en marque blanche");
+    await expect(page.locator(".site-header__logo img")).toHaveAttribute("src", "assets/img/ma-prevention-logo.svg");
+    await expect(page.locator(".hero__text")).toContainText("Ma-prevention est une plateforme");
+    await expect(page.locator(".hero__text")).toContainText("SimplX, son éditeur");
+    await expect(page.locator(".flow__card").first().locator(".flow__name")).toHaveText("SimplX");
+    await expect(page.locator(".vendor__logo")).toHaveAttribute("href", "https://www.simplx.fr/");
+    await expect(page.locator(".vendor__logo img")).toHaveAttribute("src", "assets/img/simplx-logo.png");
+    await expect(page.locator(".vendor__logo")).toHaveAccessibleName("SimplX");
     await expect(page.locator(".site-footer__bottom")).toContainText("© 2026 SimplX");
   });
 
@@ -207,29 +219,55 @@ test.describe("SimplX, éditeur et vendeur", () => {
   });
 });
 
-test.describe("Les 10 packs", () => {
+test.describe("Les packs", () => {
+  // Noms des packs tels qu'ils apparaissent dans la plateforme (« Mes abonnements »).
+  const OFFERT = "Effectifs et compétences";
   const PACKS = [
-    "Pack DUERP",
-    "Pack RH",
-    "Pack GED",
-    "Pack AT/MP",
-    "Pack Culture sécurité / HSE",
-    "Pack Entreprises extérieures",
-    "Pack Équipements / EPI / Bâtiments",
-    "Pack Environnement",
-    "Pack Plan d'actions",
-    "Pack IA",
+    "Évaluation des risques – DUERP",
+    "Événements et AT/MP",
+    "Pilotage et plan d'actions",
+    "Équipements et installations",
+    "Entreprises extérieures",
+    "Documents et registres",
   ];
+  const A_VENIR = ["Environnement", "Qualité", "RSE et QVCT", "Veille et conformité réglementaire"];
 
   test("chaque pack est présenté avec une accroche et ses fonctionnalités", async ({ page }) => {
     await page.goto("/#packs");
-    const cards = page.locator(".packs > .card.pack");
+    const cards = page.locator(".packs > .card.pack:not(.pack--offert)");
     await expect(cards.locator(".pack__name")).toHaveText(PACKS);
     for (let i = 0; i < PACKS.length; i++) {
       await expect(cards.nth(i).locator(".pack__lead")).not.toBeEmpty();
       expect(await cards.nth(i).locator(".pack__list li").count()).toBeGreaterThanOrEqual(3);
     }
+    await expect(page.locator(".pack--soon .chip")).toHaveText(A_VENIR);
     await expect(page.locator(".pack--base .pack__name")).toHaveText("Inclus avec chaque pack");
+    // L'IA n'est pas un pack : elle fait partie du socle commun.
+    await expect(page.locator(".pack--base .pack__list")).toContainText("Assistant IA");
+  });
+
+  test("le pack Effectifs et compétences est mis en avant comme offert à tous", async ({ page }) => {
+    await page.goto("/#packs");
+    const offert = page.locator(".packs > .pack--offert");
+    await expect(offert).toHaveCount(1);
+    await expect(offert.locator(".pack__name")).toHaveText(OFFERT);
+    await expect(offert.locator(".pack__badge")).toHaveText("Offert à tous vos clients");
+    await expect(page.locator(".figures__list")).toContainText("Offert");
+    await expect(page.locator(".figures__list")).toContainText(OFFERT);
+    // Pilotage et plan d'actions : offert dès 3 packs achetés.
+    const pilotage = page.locator(".packs > .card.pack", { hasText: "Pilotage et plan d'actions" });
+    await expect(pilotage.locator(".pack__tag")).toHaveText(/Offert dès 3\s+packs achetés/);
+  });
+
+  test("aucun nombre de packs annoncé, ni pack IA", async ({ page }) => {
+    await page.goto("/");
+    const text = await page.locator("body").innerText();
+    expect(text).not.toMatch(/\b(?:[6-9]|1\d)\s+packs\b/);
+    expect(text).not.toContain("Pack IA");
+    for (const sel of ['meta[name="description"]', 'meta[property="og:description"]', 'script[type="application/ld+json"]']) {
+      const value = sel.startsWith("script") ? await page.locator(sel).textContent() : await page.locator(sel).getAttribute("content");
+      expect(value).not.toMatch(/\d+\s+packs/);
+    }
   });
 
   test("la FAQ liste les mêmes packs", async ({ page }) => {
@@ -237,18 +275,179 @@ test.describe("Les 10 packs", () => {
     const item = page.locator(".faq-item", { hasText: "Quels packs" });
     await item.locator("summary").click();
     const answer = await item.locator(".faq-item__answer").innerText();
-    for (const name of PACKS) expect(answer).toContain(name.replace("Pack ", ""));
+    for (const name of [OFFERT, ...PACKS, ...A_VENIR]) expect(answer).toContain(name);
     await item.locator('a[href="#packs"]').click();
     await expectSectionInView(page, "packs");
   });
 
-  test("grille des packs : 1, 2 puis 3 colonnes", async ({ page }) => {
+  test("grille des packs : 1, 2 puis 3 colonnes, sans case vide", async ({ page }) => {
     await page.goto("/#packs");
     for (const [width, cols] of [[390, 1], [800, 2], [1440, 3]]) {
       await page.setViewportSize({ width, height: 900 });
       const n = await page.locator(".packs").evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
       expect(n, `colonnes à ${width}px`).toBe(cols);
+      // Le pack offert occupe toute la largeur ; la dernière ligne finit au bord droit avec le bloc « Inclus ».
+      const [grid, offert, base] = await Promise.all([
+        page.locator(".packs").boundingBox(),
+        page.locator(".pack--offert").boundingBox(),
+        page.locator(".pack--base").boundingBox(),
+      ]);
+      expect(Math.abs(grid.width - offert.width), `pack offert pleine largeur à ${width}px`).toBeLessThan(2);
+      expect(Math.abs(grid.x + grid.width - (base.x + base.width)), `bord droit à ${width}px`).toBeLessThan(2);
     }
+  });
+});
+
+test.describe("Remises volume", () => {
+  const values = async (page) => ({
+    catalogue: plain(await page.locator(".js-volume-catalogue").textContent()),
+    remise: plain(await page.locator(".js-volume-remise").textContent()),
+    total: plain(await page.locator(".js-volume-total").textContent()),
+  });
+
+  test("3 packs par défaut : 750 € HT et Pilotage et plan d'actions offert", async ({ page }) => {
+    await page.goto("/#remises");
+    await expect(page.locator('.volume__btn[data-packs="3"]')).toHaveAttribute("aria-pressed", "true");
+    expect(await values(page)).toEqual({ catalogue: "900 €", remise: "−150 €", total: "750 € HT" });
+    await expect(page.locator(".js-volume-gift")).toContainText("Pilotage et plan d'actions");
+    await expect(page.locator(".stair.is-on")).toHaveCount(3);
+  });
+
+  for (const [packs, attendu, pilotage] of [
+    [1, { catalogue: "300 €", remise: "0 €", total: "300 € HT" }, false],
+    [2, { catalogue: "600 €", remise: "−60 €", total: "540 € HT" }, false],
+    [4, { catalogue: "1 200 €", remise: "−270 €", total: "930 € HT" }, true],
+    [5, { catalogue: "1 500 €", remise: "−420 €", total: "1 080 € HT" }, true],
+  ]) {
+    test(`${packs} pack(s) achetés ensemble`, async ({ page }) => {
+      await page.goto("/#remises");
+      const btn = page.locator(`.volume__btn[data-packs="${packs}"]`);
+      await btn.click();
+      await expect(btn).toHaveAttribute("aria-pressed", "true");
+      await expect(page.locator('.volume__btn[aria-pressed="true"]')).toHaveCount(1);
+      expect(await values(page)).toEqual(attendu);
+      await expect(page.locator(".stair.is-on")).toHaveCount(packs);
+      const gift = page.locator(".js-volume-gift");
+      if (pilotage) await expect(gift).toContainText("Offerts en plus : Pilotage et plan d'actions");
+      else await expect(gift).toContainText("offert dès 3 packs");
+    });
+  }
+
+  test("conditions affichées : achat groupé sous 24 heures", async ({ page }) => {
+    await page.goto("/#remises");
+    await expect(page.locator(".volume__intro")).toContainText("dans les mêmes 24 heures");
+    await expect(page.locator(".stair__off")).toHaveText(["Prix catalogue", "−20 %", "−30 %", "−40 %", "−50 %"]);
+  });
+});
+
+test.describe("Pour qui ?", () => {
+  const PROFILS = [
+    ["tab-reseaux", "Réseaux professionnels et organisations à adhérents"],
+    ["tab-assureurs", "Assureurs"],
+    ["tab-comptables", "Experts-comptables"],
+    ["tab-prevoyance", "Organismes de prévoyance"],
+    ["tab-banques", "Services bancaires"],
+    ["tab-consultants", "Consultants QHSE, IPRP et cabinets de prévention"],
+  ];
+
+  test("six profils, chacun avec ses avantages et ses cas d'usage", async ({ page }) => {
+    await page.goto("/#pour-qui");
+    await expect(page.locator("#pour-qui [role=tab]")).toHaveCount(6);
+    for (const [tab, titre] of PROFILS) {
+      await page.locator(`#${tab}`).click();
+      await expect(page.locator(`#${tab}`)).toHaveAttribute("aria-selected", "true");
+      const panel = page.locator("#pour-qui [role=tabpanel]:visible");
+      await expect(panel).toHaveCount(1);
+      await expect(panel.locator(".profile__title")).toHaveText(titre);
+      expect(await panel.locator(".dash-list li").count()).toBeGreaterThanOrEqual(3);
+      expect(await panel.locator(".usecases li").count()).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  test("clavier : flèches, Début et Fin entre les onglets", async ({ page }) => {
+    await page.goto("/#pour-qui");
+    await page.locator("#tab-reseaux").focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator("#tab-assureurs")).toBeFocused();
+    await expect(page.locator("#profil-assureurs")).toBeVisible();
+    await expect(page.locator("#profil-reseaux")).toBeHidden();
+    await page.keyboard.press("End");
+    await expect(page.locator("#tab-consultants")).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator("#tab-reseaux")).toBeFocused();
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.locator("#tab-consultants")).toBeFocused();
+    await page.keyboard.press("Home");
+    await expect(page.locator("#tab-reseaux")).toHaveAttribute("aria-selected", "true");
+    // Un seul onglet dans l'ordre de tabulation.
+    expect(await page.locator('#pour-qui [role=tab][tabindex="0"]').count()).toBe(1);
+  });
+});
+
+test.describe("Captures d'écran", () => {
+  test("deux captures SECUSOFT, une visible à la fois, avec texte alternatif", async ({ page }) => {
+    await page.goto("/#captures");
+    const shots = page.locator("#captures .shot");
+    await expect(shots).toHaveCount(2);
+    await expect(page.locator("#capture-abonnements")).toBeVisible();
+    await expect(page.locator("#capture-referent")).toBeHidden();
+    await page.locator("#tab-capture-referent").click();
+    await expect(page.locator("#capture-referent")).toBeVisible();
+    await expect(page.locator("#capture-abonnements")).toBeHidden();
+    const img = page.locator("#capture-referent img");
+    expect(await img.evaluate((i) => i.complete && i.naturalWidth > 0)).toBe(true);
+    expect((await img.getAttribute("alt")).length).toBeGreaterThan(40);
+  });
+
+  test("le lien de l'option référents ouvre la capture de l'espace référent", async ({ page }) => {
+    await page.goto("/#referents");
+    await page.locator('#referents a[data-tab-target="capture-referent"]').click();
+    await expectSectionInView(page, "captures");
+    await expect(page.locator("#tab-capture-referent")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#capture-referent")).toBeVisible();
+  });
+
+  test("lien vers la capture en taille réelle", async ({ request, page }) => {
+    await page.goto("/#captures");
+    const href = await page.locator("#capture-abonnements .text-link").getAttribute("href");
+    const res = await request.get("/" + href);
+    expect(res.status()).toBe(200);
+  });
+});
+
+test.describe("Option espaces référents externalisés", () => {
+  test("deux cas, avec ou sans compétences, et leurs conditions tarifaires", async ({ page }) => {
+    await page.goto("/#referents");
+    const scenarios = page.locator("#referents .scenario");
+    await expect(scenarios).toHaveCount(2);
+    await expect(scenarios.nth(0)).toContainText("Vous avez les compétences");
+    await expect(scenarios.nth(1)).toContainText("Vous n'avez pas les compétences");
+    for (let i = 0; i < 2; i++) await expect(scenarios.nth(i)).toContainText("100 € HT par client et par an");
+    await expect(scenarios.nth(1)).toContainText("12 % de remise");
+    await expect(scenarios.nth(1)).toContainText("apport d'affaires");
+    await expect(page.locator("#referents")).toContainText("dans votre marque blanche");
+  });
+});
+
+test.describe("Retours du 21 octobre 2026", () => {
+  test("mentions retirées : Flex, SECUSAM, espaces « Je cherche / Je propose », « Réserver ma place »", async ({ page, request }) => {
+    const source = await (await request.get("/")).text();
+    expect(source).not.toMatch(/Flex/);
+    expect(source).not.toMatch(/secusam/i);
+    expect(source).not.toMatch(/Je cherche|Je propose/);
+    expect(source).not.toMatch(/Réserver ma place|Réservez votre place/i);
+    await page.goto("/");
+    const text = await page.locator("body").innerText();
+    // Limites de mots : « puis-je proposer » reste autorisé.
+    expect(text).not.toMatch(/\bFlex\b|SECUSAM|\bJe cherche\b|\bJe propose\b|Réserver ma place|Réservez votre place/i);
+  });
+
+  test("le hero propose « Voir l'offre » et une baseline en trois temps", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".hero__actions a")).toHaveCount(1);
+    await expect(page.locator(".hero__actions a")).toHaveText("Voir l'offre");
+    await expect(page.locator("#hero-title .hero__line")).toHaveText(["Votre marque.", "Leur sécurité.", "Vos revenus."]);
+    await expect(page.locator(".site-footer__baseline")).toHaveText("Votre marque. Leur sécurité. Vos revenus.");
   });
 });
 
@@ -275,7 +474,7 @@ test.describe("Menu mobile", () => {
   test("chaque lien du menu ferme le menu et amène à sa section", async ({ page }) => {
     const toggle = page.locator(".nav-toggle");
     const hrefs = await page.$$eval("#mobile-nav a", (as) => as.map((a) => a.getAttribute("href")));
-    expect(hrefs.length).toBe(7);
+    expect(hrefs.length).toBe(8);
     for (const href of hrefs) {
       await toggle.tap();
       await page.locator(`#mobile-nav a[href="${href}"]`).tap();
@@ -374,7 +573,7 @@ test.describe("Aperçu de la marque", () => {
     ["  Mon Réseau & Co  ", "mon-reseau-co", "MON RÉSEAU & CO", "Mon Réseau & Co"],
     ["Cœur Santé", "coeur-sante", "CŒUR SANTÉ", "Cœur Santé"],
     ["!!!", "votre-marque", "!!!", "!!!"],
-    ["", "votre-marque", "VOTRE LOGO", "Flex"],
+    ["", "votre-marque", "VOTRE LOGO", "IA"],
   ];
 
   for (const [input, slug, logo, assistant] of cases) {
@@ -459,9 +658,9 @@ test.describe("FAQ", () => {
   test("chaque question s'ouvre et se referme au clic", async ({ page }) => {
     await page.goto("/");
     const items = page.locator(".faq-item");
-    await expect(items).toHaveCount(8);
+    await expect(items).toHaveCount(11);
     await expect(items.first()).toHaveAttribute("open", "");
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 11; i++) {
       const item = items.nth(i);
       const summary = item.locator("summary");
       const answer = item.locator(".faq-item__answer");
@@ -545,7 +744,7 @@ test.describe("Contact", () => {
 
   test("chaque bouton d'inscription mène au bouton de contact", async ({ page }, testInfo) => {
     await page.goto("/");
-    const selectors = [".hero__actions .btn--primary", ".price-card .btn--secondary", ".price-card--featured .btn"];
+    const selectors = [".price-card .btn--secondary", ".price-card--featured .btn"];
     if (testInfo.project.name === "desktop") selectors.unshift(".site-header__cta");
     for (const selector of selectors) {
       await page.locator(selector).click();
@@ -600,7 +799,7 @@ test.describe("Sans JavaScript", () => {
   test("les ancres et la FAQ fonctionnent sans JavaScript", async ({ browser, baseURL }, testInfo) => {
     const { context, page } = await noJsPage(browser, baseURL, testInfo);
     await page.goto("/");
-    await page.locator(".hero__actions .btn--light").focus();
+    await page.locator(".hero__actions .btn--primary").focus();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/#principe$/);
     const item = page.locator(".faq-item").nth(1);
@@ -608,6 +807,106 @@ test.describe("Sans JavaScript", () => {
     await page.keyboard.press("Enter");
     expect(await item.evaluate((d) => d.open)).toBe(true);
     await context.close();
+  });
+
+  test("profils, captures et remises restent lisibles sans JavaScript, sans commandes inactives", async ({ browser, baseURL }, testInfo) => {
+    const { context, page } = await noJsPage(browser, baseURL, testInfo);
+    await page.goto("/");
+    // Onglets masqués, tous les panneaux affichés.
+    for (const sel of ["#pour-qui [role=tablist]", "#captures [role=tablist]", ".js-volume"]) {
+      await expect(page.locator(sel)).toBeHidden();
+    }
+    const profils = page.locator("#pour-qui .profile");
+    await expect(profils).toHaveCount(6);
+    for (let i = 0; i < 6; i++) await expect(profils.nth(i)).toBeVisible();
+    for (const id of ["capture-abonnements", "capture-referent"]) await expect(page.locator(`#${id}`)).toBeVisible();
+    // Exemple chiffré pour 3 packs, lisible tel quel.
+    await expect(page.locator(".js-volume-case")).toContainText("3");
+    await expect(page.locator(".js-volume-total")).toContainText("750");
+    await context.close();
+  });
+
+  test("l'exemple SECUSOFT reste lisible sans JavaScript, sans commandes inactives", async ({ browser, baseURL }, testInfo) => {
+    const { context, page } = await noJsPage(browser, baseURL, testInfo);
+    await page.goto("/#exemple");
+    await expect(page.locator(".js-theme-switch")).toBeHidden();
+    await expect(page.locator('.app__brand--secusoft img[alt="SECUSOFT"]')).toBeVisible();
+    await expect(page.locator(".app__brand--defaut")).toBeHidden();
+    await expect(page.locator(".app__button")).toHaveCSS("color", "rgb(30, 16, 48)");
+    await context.close();
+  });
+});
+
+test.describe("Exemple de marque blanche : SECUSOFT", () => {
+  const contrast = (page) =>
+    page.locator(".js-app").evaluate((app) => {
+      const btn = app.querySelector(".app__button");
+      const parse = (c) => c.match(/\d+/g).slice(0, 3).map(Number);
+      const lum = (rgb) => {
+        const [r, g, b] = rgb.map((v) => {
+          v /= 255;
+          return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const ratio = (a, b) => {
+        const x = lum(parse(a)), y = lum(parse(b));
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+      };
+      const cs = getComputedStyle(btn);
+      const tab = getComputedStyle(app.querySelector(".app__tab.is-active"));
+      return { bouton: ratio(cs.color, cs.backgroundColor), repere: ratio(tab.borderBottomColor, "rgb(255, 255, 255)") };
+    });
+
+  test("SECUSOFT affiché par défaut, avec son logo et un bouton lisible", async ({ page }) => {
+    await page.goto("/#exemple");
+    await expect(page.locator('.theme-switch__btn[data-theme="secusoft"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('.app__brand--secusoft img[alt="SECUSOFT"]')).toBeVisible();
+    await expect(page.locator(".js-app")).toHaveAttribute("aria-label", /sous la marque SECUSOFT/);
+    const c = await contrast(page);
+    expect(c.bouton).toBeGreaterThanOrEqual(4.5);
+    expect(c.repere).toBeGreaterThanOrEqual(4.5);
+    await expect(page.locator(".js-theme-rule")).toContainText("6,8:1");
+  });
+
+  test("bascule vers le thème par défaut puis retour à SECUSOFT", async ({ page }) => {
+    await page.goto("/#exemple");
+    await page.locator('.theme-switch__btn[data-theme="defaut"]').click();
+    await expect(page.locator('.theme-switch__btn[data-theme="defaut"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('.theme-switch__btn[data-theme="secusoft"]')).toHaveAttribute("aria-pressed", "false");
+    await expect(page.locator('.app__brand--defaut img[alt="ma-prevention"]')).toBeVisible();
+    await expect(page.locator(".app__brand--secusoft")).toBeHidden();
+    await expect(page.locator(".app__button")).toHaveCSS("background-color", "rgb(106, 24, 194)");
+    await expect(page.locator(".app__button")).toHaveCSS("color", "rgb(255, 255, 255)");
+    await expect(page.locator(".js-theme-rule")).toContainText("blanc");
+    await page.locator('.theme-switch__btn[data-theme="secusoft"]').click();
+    await expect(page.locator('.app__brand--secusoft')).toBeVisible();
+  });
+
+  for (const [couleur, texte] of [["#ffcc00", "foncé"], ["#e30613", "blanc"], ["#00487b", "blanc"], ["#ffffff", "foncé"], ["#7fd1ff", "foncé"]]) {
+    test(`votre couleur ${couleur} : texte ${texte}, contrastes d'au moins 4,5:1`, async ({ page }) => {
+      await page.goto("/#exemple");
+      await page.locator("#theme-color").fill(couleur);
+      await expect(page.locator(".theme-switch__custom")).toHaveClass(/is-active/);
+      await expect(page.locator(".app__brand--perso")).toBeVisible();
+      await expect(page.locator(".js-theme-rule")).toContainText(`en ${texte}`);
+      const c = await contrast(page);
+      expect(c.bouton).toBeGreaterThanOrEqual(4.5);
+      expect(c.repere).toBeGreaterThanOrEqual(4.5);
+    });
+  }
+
+  test("votre couleur reprend le nom de marque saisi dans le hero, sans l'interpréter", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#brand-input").fill("Réseau <b>Sud</b>");
+    await page.locator("#theme-color").fill("#2e9e6f");
+    const perso = page.locator(".app__brand--perso");
+    await expect(perso.locator(".app__initiale")).toHaveText("R");
+    await expect(perso).toContainText("Réseau <b>Sud</b>");
+    await expect(perso.locator("b")).toHaveCount(0);
+    await page.locator("#brand-input").fill("");
+    await expect(perso.locator(".app__initiale")).toHaveText("V");
+    await expect(perso).toContainText("Votre marque");
   });
 });
 
@@ -628,7 +927,7 @@ test.describe("Clavier et accessibilité", () => {
     await page.goto("/");
     const seen = [];
     const invisibleFocus = [];
-    for (let i = 0; i < 160; i++) {
+    for (let i = 0; i < 220; i++) {
       await page.keyboard.press("Tab");
       const info = await page.evaluate(() => {
         const el = document.activeElement;
@@ -638,7 +937,7 @@ test.describe("Clavier et accessibilité", () => {
         const visible =
           (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) ||
           cs.boxShadow !== "none" ||
-          (el.id === "brand-input" && parent && parent.borderColor === "rgb(31, 171, 227)");
+          (el.id === "brand-input" && parent && parent.borderColor === "rgb(106, 24, 194)");
         return {
           key: el.id || `${el.tagName.toLowerCase()}:${(el.getAttribute("href") || el.textContent || "").trim().slice(0, 30)}`,
           visible,
@@ -649,6 +948,11 @@ test.describe("Clavier et accessibilité", () => {
       if (!info.visible) invisibleFocus.push(info.key);
     }
     expect(seen).toContain("brand-input");
+    expect(seen).toContain("tab-reseaux");
+    expect(seen).toContain("profil-reseaux");
+    expect(seen).toContain("theme-color");
+    expect(seen).toContain("tab-capture-abonnements");
+    expect(seen).toContain("button:5 et +");
     expect(seen).toContain("sim-packs");
     expect(seen.some((k) => k.includes("simplx.fr/contact"))).toBe(true);
     expect(seen.some((k) => k.includes("mentions-legales.html"))).toBe(true);
@@ -657,17 +961,20 @@ test.describe("Clavier et accessibilité", () => {
     expect(invisibleFocus).toEqual([]);
   });
 
-  test("audit axe (hors contraste du bleu de la charte)", async ({ browser, baseURL }, testInfo) => {
-    // bypassCSP : l'outil d'audit est injecté en script inline, bloqué par la CSP d'Apache.
-    const context = await browser.newContext({ ...testInfo.project.use, baseURL, bypassCSP: true });
-    const page = await context.newPage();
-    await page.goto("/");
-    await page.addScriptTag({ content: fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8") });
-    const result = await page.evaluate(() =>
-      window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "best-practice"], rules: { "color-contrast": { enabled: false } } })
-    );
-    const violations = result.violations.map((v) => `${v.id} (${v.nodes.length})`);
-    expect(violations).toEqual([]);
-    await context.close();
-  });
+  // La charte Ma-prevention passe les contrastes AA : l'audit les vérifie, sur chaque thème de l'aperçu.
+  for (const theme of ["secusoft", "defaut", "perso"]) {
+    test(`audit axe, contrastes compris (aperçu ${theme})`, async ({ browser, baseURL }, testInfo) => {
+      // bypassCSP : l'outil d'audit est injecté en script inline, bloqué par la CSP d'Apache.
+      const context = await browser.newContext({ ...testInfo.project.use, baseURL, bypassCSP: true, reducedMotion: "reduce" });
+      const page = await context.newPage();
+      await page.goto("/");
+      if (theme === "perso") await page.locator("#theme-color").fill("#ffcc00");
+      else await page.locator(`.theme-switch__btn[data-theme="${theme}"]`).click();
+      await page.addScriptTag({ content: fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8") });
+      const result = await page.evaluate(() => window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "best-practice"] }));
+      const violations = result.violations.map((v) => `${v.id} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`);
+      expect(violations).toEqual([]);
+      await context.close();
+    });
+  }
 });

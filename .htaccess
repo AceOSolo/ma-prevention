@@ -6,6 +6,7 @@ ErrorDocument 404 /404.html
 AddDefaultCharset utf-8
 AddCharset utf-8 .html .css .js .xml .txt
 AddType font/woff2 .woff2
+AddType image/webp .webp
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -57,6 +58,7 @@ RedirectMatch 404 (^|/)\.(?!well-known(/|$))
   ExpiresByType text/javascript "access plus 1 month"
   ExpiresByType application/javascript "access plus 1 month"
   ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
   ExpiresByType image/x-icon "access plus 1 month"
   ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>

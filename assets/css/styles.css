@@ -1803,8 +1803,19 @@ strong { font-weight: 700; }
 .prose { display: flex; flex-direction: column; gap: 16px; }
 .prose h1 { font-family: var(--font-titre); font-size: clamp(2.25rem, 1.8rem + 1.8vw, 3rem); line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; color: var(--encre); margin-bottom: 8px; }
 .prose h2 { font-family: var(--font-titre); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--encre); margin-top: 24px; }
+.prose h3 { font-family: var(--font-titre); font-size: 1.125rem; font-weight: 700; color: var(--encre); margin-top: 8px; }
 .prose ul { list-style: disc; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
-.prose ul li::marker { color: var(--rose-signal); }
+.prose ol { list-style: decimal; padding-left: 24px; display: flex; flex-direction: column; gap: 6px; }
+.prose ul li::marker,
+.prose ol li::marker { color: var(--rose-signal); }
+.prose .page-meta { font-size: 0.9375rem; color: var(--encre-douce); }
+.prose .toc { padding: 20px 24px 20px 44px; border: 1px solid var(--trait); border-radius: 12px; }
+.prose .toc li { break-inside: avoid; }
+@media (min-width: 720px) {
+  .prose .toc { display: block; columns: 2; column-gap: 40px; }
+  .prose .toc li + li { margin-top: 6px; }
+}
+.table-note { margin-top: 16px; }
 
 /* ---------- Mouvement réduit ---------- */
 

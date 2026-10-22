@@ -27,7 +27,7 @@
 
   <link rel="preload" href="assets/fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/styles.css?v=7">
+  <link rel="stylesheet" href="assets/css/styles.css?v=8">
   <script src="assets/js/main.js?v=3" defer></script>
 
   <script type="application/ld+json">
@@ -763,12 +763,12 @@
           <div class="volume__intro">
             <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-trending-down"/></svg></span>
             <h3 class="volume__title">Plus vos clients prennent de packs, moins ils paient</h3>
-            <p>Une remise sur chaque pack supplémentaire et des packs offerts&nbsp;: un argument de vente de plus pour vous.</p>
+            <p>Le prix catalogue des packs est dégressif&nbsp;: c'est le tarif que SimplX applique, avec une remise sur chaque pack supplémentaire et des packs offerts. Un argument de vente de plus pour vous.</p>
             <ul class="perks">
               <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-gift"/></svg><span><strong>Effectifs et compétences offert</strong> à tous les clients de la plateforme</span></li>
               <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-gift"/></svg><span><strong>Pilotage et plan d'actions offert</strong> dès 3&nbsp;packs achetés</span></li>
             </ul>
-            <p class="small">Remises valables pour des packs achetés ensemble, dans les mêmes 24&nbsp;heures. Prix catalogue d'un pack&nbsp;: 300&nbsp;€&nbsp;HT.</p>
+            <p class="small">Tarif dégressif valable pour des packs achetés ensemble, dans les mêmes 24&nbsp;heures. Prix catalogue appliqué par SimplX&nbsp;: 300&nbsp;€&nbsp;HT le premier pack, puis dégressif.</p>
           </div>
 
           <div class="volume__sim">
@@ -782,8 +782,8 @@
                 <button class="volume__btn" type="button" data-packs="5" aria-pressed="false">5 et +</button>
               </span>
             </div>
-            <ol class="stairs" aria-label="Prix de chaque pack selon son rang dans l'achat">
-              <li class="stair stair--1 is-on"><span class="stair__bar"><span class="stair__price">300&nbsp;€</span></span><span class="stair__rank">1er pack</span><span class="stair__off">Prix catalogue</span></li>
+            <ol class="stairs" aria-label="Prix catalogue de chaque pack selon son rang dans l'achat">
+              <li class="stair stair--1 is-on"><span class="stair__bar"><span class="stair__price">300&nbsp;€</span></span><span class="stair__rank">1er pack</span><span class="stair__off">Plein tarif</span></li>
               <li class="stair stair--2 is-on"><span class="stair__bar"><span class="stair__price">240&nbsp;€</span></span><span class="stair__rank">2e pack</span><span class="stair__off">−20&nbsp;%</span></li>
               <li class="stair stair--3 is-on"><span class="stair__bar"><span class="stair__price">210&nbsp;€</span></span><span class="stair__rank">3e pack</span><span class="stair__off">−30&nbsp;%</span></li>
               <li class="stair stair--4"><span class="stair__bar"><span class="stair__price">180&nbsp;€</span></span><span class="stair__rank">4e pack</span><span class="stair__off">−40&nbsp;%</span></li>
@@ -791,13 +791,65 @@
             </ol>
             <div class="volume__result" aria-live="polite">
               <p class="volume__case js-volume-case">Exemple pour 3&nbsp;packs achetés ensemble</p>
-              <div class="sim__line"><span>Prix catalogue</span><output class="js-volume-catalogue">900&nbsp;€</output></div>
-              <div class="sim__line"><span>Remises volume</span><output class="js-volume-remise">−150&nbsp;€</output></div>
-              <div class="sim__total"><span>Total pour votre client</span><output class="js-volume-total">750&nbsp;€&nbsp;HT</output></div>
+              <div class="sim__line"><span>Au plein tarif</span><output class="js-volume-catalogue">900&nbsp;€</output></div>
+              <div class="sim__line"><span>Dégressivité</span><output class="js-volume-remise">−150&nbsp;€</output></div>
+              <div class="sim__total"><span>Prix catalogue pour votre client</span><output class="js-volume-total">750&nbsp;€&nbsp;HT</output></div>
               <p class="volume__gift js-volume-gift">Offerts en plus&nbsp;: Pilotage et plan d'actions, Effectifs et compétences.</p>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="section section--nuit" id="referents" aria-labelledby="referents-title">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Option espaces référents externalisés</span>
+          <h2 class="h2" id="referents-title">Un référent santé-sécurité pour chacun de vos clients, avec ou sans vos experts</h2>
+          <p class="lead">Toute entreprise doit désigner un ou plusieurs salariés compétents pour s'occuper de la prévention des risques professionnels (article L4644-1 du Code du travail). Peu de TPE et de PME ont cette compétence en interne&nbsp;: proposez-leur un référent externalisé, géré directement dans votre marque blanche.</p>
+        </div>
+
+        <ul class="scenarios">
+          <li class="dark-card scenario">
+            <span class="scenario__tag">Vous avez les compétences</span>
+            <div class="scenario__head">
+              <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-user-check"/></svg></span>
+              <h3 class="h3">Vos intervenants, notre outil</h3>
+            </div>
+            <p>Vos préventeurs, IPRP ou consultants assurent les missions de référent. Vous les pilotez depuis votre marque blanche&nbsp;: tickets, planning et temps alloué pour chaque client.</p>
+            <dl class="scenario__price">
+              <div><dt>Ouverture de l'espace</dt><dd><strong>100&nbsp;€&nbsp;HT</strong> par client et par an</dd></div>
+            </dl>
+          </li>
+          <li class="dark-card scenario scenario--simplx">
+            <span class="scenario__tag">Vous n'avez pas les compétences</span>
+            <div class="scenario__head">
+              <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-handshake"/></svg></span>
+              <h3 class="h3">Nos référents, votre marque</h3>
+            </div>
+            <p>Sollicitez directement SimplX&nbsp;: nos référents santé-sécurité interviennent auprès de vos clients et l'espace référent vous est offert. Les missions sont suivies dans votre marque blanche, sous votre nom.</p>
+            <dl class="scenario__price">
+              <div><dt>Ouverture de l'espace</dt><dd><strong>Offerte</strong></dd></div>
+              <div><dt>Intervenant SimplX</dt><dd>Coût de la mission, avec <strong>12&nbsp;% de remise</strong> au titre de l'apport d'affaires</dd></div>
+            </dl>
+          </li>
+        </ul>
+
+        <ul class="grid-3 referents__perks">
+          <li class="dark-card feature">
+            <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg></span>
+            <div class="feature__body"><h3 class="h3">Un coût fixe, prévisible</h3><p>Avec vos intervenants, 100&nbsp;€ par client et par an, quel que soit le nombre d'heures de la mission et votre prix de vente. Avec un référent SimplX, l'espace est offert.</p></div>
+          </li>
+          <li class="dark-card feature">
+            <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-ticket"/></svg></span>
+            <div class="feature__body"><h3 class="h3">Des outils de suivi intégrés</h3><p>Tickets, planning, forfait d'heures et temps restant pour chaque mission.</p></div>
+          </li>
+          <li class="dark-card feature">
+            <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-palette"/></svg></span>
+            <div class="feature__body"><h3 class="h3">Tout dans votre marque blanche</h3><p>Vos clients retrouvent leur référent dans leur espace, à vos couleurs.</p></div>
+          </li>
+        </ul>
+        <a class="text-link text-link--nuit" href="#captures" data-tab-target="capture-referent">Voir l'espace référent en capture d'écran<svg class="icon icon--ext" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
       </div>
     </section>
 
@@ -886,7 +938,7 @@
             <div class="sim__line"><span>Refacturé par SimplX (60&nbsp;%)</span><output id="sim-refac">4&nbsp;500&nbsp;€</output></div>
             <div class="sim__total"><span>Votre marge (40&nbsp;%)</span><output id="sim-marge">3&nbsp;000&nbsp;€</output></div>
           </div>
-          <p class="small">Estimation sur la base d'un pack à 300&nbsp;€&nbsp;HT au prix catalogue, hors remises volume, droit d'entrée et abonnement plateforme.</p>
+          <p class="small">Estimation sur la base d'un pack à 300&nbsp;€&nbsp;HT au prix catalogue, hors tarif dégressif, droit d'entrée et abonnement plateforme.</p>
         </div>
       </div>
     </section>
@@ -929,58 +981,6 @@
             </ol>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="section section--nuit" id="referents" aria-labelledby="referents-title">
-      <div class="container">
-        <div class="section-head">
-          <span class="eyebrow">Option espaces référents externalisés</span>
-          <h2 class="h2" id="referents-title">Un référent santé-sécurité pour chacun de vos clients, avec ou sans vos experts</h2>
-          <p class="lead">Toute entreprise doit désigner un ou plusieurs salariés compétents pour s'occuper de la prévention des risques professionnels (article L4644-1 du Code du travail). Peu de TPE et de PME ont cette compétence en interne&nbsp;: proposez-leur un référent externalisé, géré directement dans votre marque blanche.</p>
-        </div>
-
-        <ul class="scenarios">
-          <li class="dark-card scenario">
-            <span class="scenario__tag">Vous avez les compétences</span>
-            <div class="scenario__head">
-              <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-user-check"/></svg></span>
-              <h3 class="h3">Vos intervenants, notre outil</h3>
-            </div>
-            <p>Vos préventeurs, IPRP ou consultants assurent les missions de référent. Vous les pilotez depuis votre marque blanche&nbsp;: tickets, planning et temps alloué pour chaque client.</p>
-            <dl class="scenario__price">
-              <div><dt>Ouverture de l'espace</dt><dd><strong>100&nbsp;€&nbsp;HT</strong> par client et par an</dd></div>
-            </dl>
-          </li>
-          <li class="dark-card scenario scenario--simplx">
-            <span class="scenario__tag">Vous n'avez pas les compétences</span>
-            <div class="scenario__head">
-              <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-handshake"/></svg></span>
-              <h3 class="h3">Nos référents, votre marque</h3>
-            </div>
-            <p>SimplX vous propose des référents santé-sécurité qui interviennent auprès de vos clients. Les missions sont suivies dans votre marque blanche, sous votre nom.</p>
-            <dl class="scenario__price">
-              <div><dt>Ouverture de l'espace</dt><dd><strong>100&nbsp;€&nbsp;HT</strong> par client et par an</dd></div>
-              <div><dt>Intervenant SimplX</dt><dd>Coût de la mission en sus, avec <strong>12&nbsp;% de remise</strong> au titre de l'apport d'affaires</dd></div>
-            </dl>
-          </li>
-        </ul>
-
-        <ul class="grid-3 referents__perks">
-          <li class="dark-card feature">
-            <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg></span>
-            <div class="feature__body"><h3 class="h3">Un coût fixe, prévisible</h3><p>100&nbsp;€ par client et par an, quel que soit le nombre d'heures de la mission et votre prix de vente.</p></div>
-          </li>
-          <li class="dark-card feature">
-            <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-ticket"/></svg></span>
-            <div class="feature__body"><h3 class="h3">Des outils de suivi intégrés</h3><p>Tickets, planning, forfait d'heures et temps restant pour chaque mission.</p></div>
-          </li>
-          <li class="dark-card feature">
-            <span class="tile-icon"><svg class="icon" aria-hidden="true"><use href="#i-palette"/></svg></span>
-            <div class="feature__body"><h3 class="h3">Tout dans votre marque blanche</h3><p>Vos clients retrouvent leur référent dans leur espace, à vos couleurs.</p></div>
-          </li>
-        </ul>
-        <a class="text-link text-link--nuit" href="#captures" data-tab-target="capture-referent">Voir l'espace référent en capture d'écran<svg class="icon icon--ext" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
       </div>
     </section>
 
@@ -1030,12 +1030,13 @@
               <tr><th scope="row">Abonnement annuel</th><td class="price">900&nbsp;€&nbsp;HT / an</td><td>Hébergement et maintenance dès l'année 2 (hors support)</td></tr>
               <tr><th scope="row">Refacturation sur vos ventes</th><td class="price">60&nbsp;% du prix catalogue</td><td>Les packs et les abonnements de vos clients</td></tr>
               <tr><th scope="row">Pack Effectifs et compétences</th><td class="price">Offert</td><td>À tous les clients de la plateforme</td></tr>
-              <tr><th scope="row">Remises volume pour vos clients</th><td class="price">−20&nbsp;% à −50&nbsp;%</td><td>Du 2e au 5e pack achetés ensemble sous 24&nbsp;h, et Pilotage et plan d'actions offert dès 3&nbsp;packs</td></tr>
-              <tr><th scope="row">Espace référent externalisé</th><td class="price">100&nbsp;€&nbsp;HT / an</td><td>Par client. Avec un référent SimplX&nbsp;: coût de l'intervenant en sus, 12&nbsp;% de remise au titre de l'apport d'affaires</td></tr>
+              <tr><th scope="row">Tarif dégressif des packs</th><td class="price">−20&nbsp;% à −50&nbsp;%</td><td>Prix catalogue appliqué par SimplX, du 2e au 5e pack achetés ensemble sous 24&nbsp;h, et Pilotage et plan d'actions offert dès 3&nbsp;packs</td></tr>
+              <tr><th scope="row">Espace référent externalisé</th><td class="price">100&nbsp;€&nbsp;HT / an</td><td>Par client, avec vos intervenants. Avec un référent SimplX&nbsp;: espace offert, coût de l'intervenant avec 12&nbsp;% de remise au titre de l'apport d'affaires</td></tr>
               <tr><th scope="row">Support externalisé</th><td class="price">Forfaits d'heures</td><td>En option, auprès de SimplX</td></tr>
             </tbody>
           </table>
         </div>
+        <p class="small table-note">Tarifs hors taxes. Les conditions détaillées figurent dans les <a href="cgv.html">conditions générales de vente</a>.</p>
       </div>
     </section>
 
@@ -1044,7 +1045,7 @@
         <div class="faq__head">
           <span class="eyebrow">FAQ</span>
           <h2 class="h2" id="faq-title">Questions fréquentes</h2>
-          <p>Pour toute autre question, écrivez à <a href="mailto:contact@simplx.fr">contact@simplx.fr</a> ou <a href="#contact">contactez l'équipe SimplX</a>.</p>
+          <p>Pour toute autre question, écrivez à <a href="mailto:contact@simplx.fr?subject=Ma-prevention%20%E2%80%93%20demande%20distributeur">contact@simplx.fr</a> ou <a href="#contact">contactez l'équipe SimplX</a>.</p>
         </div>
         <div class="faq__list">
           <details class="faq-item" open>
@@ -1060,8 +1061,8 @@
             <p class="faq-item__answer">Évaluation des risques – DUERP, Événements et AT/MP, Pilotage et plan d'actions, Équipements et installations, Entreprises extérieures, et Documents et registres. Le pack Effectifs et compétences est offert à tous vos clients. Environnement, Qualité, RSE et QVCT, et Veille et conformité réglementaire arrivent prochainement. L'IA n'est pas un pack à part&nbsp;: elle est intégrée à la plateforme. Le détail est présenté dans la <a href="#packs">section des packs</a>.</p>
           </details>
           <details class="faq-item">
-            <summary>Comment fonctionnent les remises volume&nbsp;?<svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></summary>
-            <p class="faq-item__answer">Quand un client achète plusieurs packs ensemble, dans les mêmes 24&nbsp;heures, le 2e pack bénéficie de 20&nbsp;% de remise, le 3e de 30&nbsp;%, le 4e de 40&nbsp;% et le 5e et les suivants de 50&nbsp;%. Dès 3&nbsp;packs achetés, le pack Pilotage et plan d'actions est offert. Voir le <a href="#remises">détail des remises</a>.</p>
+            <summary>Comment fonctionne le tarif dégressif&nbsp;?<svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></summary>
+            <p class="faq-item__answer">C'est le prix catalogue appliqué par SimplX. Quand un client achète plusieurs packs ensemble, dans les mêmes 24&nbsp;heures, le 2e pack bénéficie de 20&nbsp;% de remise, le 3e de 30&nbsp;%, le 4e de 40&nbsp;% et le 5e et les suivants de 50&nbsp;%. Dès 3&nbsp;packs achetés, le pack Pilotage et plan d'actions est offert. Voir le <a href="#remises">détail du tarif dégressif</a>.</p>
           </details>
           <details class="faq-item">
             <summary>Qu'est-ce qui est inclus dans la marque blanche&nbsp;?<svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></summary>
@@ -1069,7 +1070,7 @@
           </details>
           <details class="faq-item">
             <summary>Comment proposer un référent santé-sécurité à mes clients&nbsp;?<svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></summary>
-            <p class="faq-item__answer">Ouvrez un espace référent pour chaque client concerné, à 100&nbsp;€&nbsp;HT par client et par an. Si vous avez les compétences, vos intervenants assurent les missions. Sinon, SimplX vous propose des référents&nbsp;: le coût de l'intervenant s'ajoute, avec 12&nbsp;% de remise sur les missions réalisées pour vos clients au titre de l'apport d'affaires. Dans les deux cas, tout est géré dans votre marque blanche. Voir l'<a href="#referents">option espaces référents</a>.</p>
+            <p class="faq-item__answer">Si vous avez les compétences, ouvrez un espace référent pour chaque client concerné, à 100&nbsp;€&nbsp;HT par client et par an&nbsp;: vos intervenants assurent les missions. Sinon, sollicitez directement SimplX&nbsp;: l'espace référent vous est offert et seul le coût de l'intervenant SimplX est facturé, avec 12&nbsp;% de remise sur les missions réalisées pour vos clients au titre de l'apport d'affaires. Dans les deux cas, tout est géré dans votre marque blanche. Voir l'<a href="#referents">option espaces référents</a>.</p>
           </details>
           <details class="faq-item">
             <summary>Quel est le lien entre Ma-prevention et SECUSOFT&nbsp;?<svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></summary>
@@ -1102,7 +1103,7 @@
           <h2 class="h2 cta__title" id="contact-title">Devenez l'un des 20 premiers distributeurs <span class="nobr">Ma-prevention</span></h2>
           <p class="cta__price"><strong>1&nbsp;900&nbsp;€&nbsp;HT</strong><span>au lieu de <s>2&nbsp;900&nbsp;€&nbsp;HT</s></span></p>
           <p class="js-early"><span class="early-strip__places js-places">Encore 20 places disponibles</span></p>
-          <a class="btn btn--primary cta__mobile-cta" href="https://www.simplx.fr/contact/" target="_blank" rel="noopener">Contacter SimplX<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a>
+          <a class="btn btn--primary cta__mobile-cta" href="https://www.simplx.fr/contact/?objet=Ma-prevention%20%E2%80%93%20demande%20distributeur&amp;utm_source=ma-prevention.fr&amp;utm_medium=referral&amp;utm_campaign=distributeurs" target="_blank" rel="noopener">Contacter SimplX<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a>
           <ul class="checklist">
             <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"/></svg><span>Personnalisation complète et mise en service</span></li>
             <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"/></svg><span>Tous les packs QHSE à proposer à vos clients, dont Effectifs et compétences offert</span></li>
@@ -1115,10 +1116,10 @@
         <div class="cta__card contact-card">
           <h3 class="contact-card__title">Devenez distributeur</h3>
           <p class="contact-card__text">Pour recevoir le contrat de distribution et profiter du tarif early bird, contactez SimplX, l'éditeur de <span class="nobr">Ma-prevention</span>.</p>
-          <a class="btn btn--primary btn--block contact-card__cta" href="https://www.simplx.fr/contact/" target="_blank" rel="noopener">Contacter SimplX<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a>
+          <a class="btn btn--primary btn--block contact-card__cta" href="https://www.simplx.fr/contact/?objet=Ma-prevention%20%E2%80%93%20demande%20distributeur&amp;utm_source=ma-prevention.fr&amp;utm_medium=referral&amp;utm_campaign=distributeurs" target="_blank" rel="noopener">Contacter SimplX<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a>
           <div class="contact-card__alt">
             <p>Vous préférez écrire directement&nbsp;?</p>
-            <a href="mailto:contact@simplx.fr"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"/></svg>contact@simplx.fr</a>
+            <a href="mailto:contact@simplx.fr?subject=Ma-prevention%20%E2%80%93%20demande%20distributeur"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"/></svg>contact@simplx.fr</a>
           </div>
         </div>
       </div>
@@ -1140,9 +1141,9 @@
           <li><a href="#pour-qui">Pour qui&nbsp;?</a></li>
           <li><a href="#exemple">Exemple SECUSOFT</a></li>
           <li><a href="#packs">Les packs</a></li>
+          <li><a href="#referents">Référents externalisés</a></li>
           <li><a href="#tarifs">Tarifs</a></li>
           <li><a href="#modele">Modèle économique</a></li>
-          <li><a href="#referents">Référents externalisés</a></li>
           <li><a href="#mise-en-service">Mise en service</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
@@ -1151,8 +1152,8 @@
         <p class="footer-title">Contact</p>
         <ul class="footer-links footer-contact">
           <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-pin"/></svg><span>SimplX<br>6 rue de Copenhague<br>38070 Saint-Quentin-Fallavier</span></li>
-          <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:contact@simplx.fr">contact@simplx.fr</a></li>
-          <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-message"/></svg><a class="footer-ext" href="https://www.simplx.fr/contact/" target="_blank" rel="noopener">Page contact SimplX<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a></li>
+          <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"/></svg><a href="mailto:contact@simplx.fr?subject=Ma-prevention%20%E2%80%93%20demande%20distributeur">contact@simplx.fr</a></li>
+          <li><svg class="icon icon--sm" aria-hidden="true"><use href="#i-message"/></svg><a class="footer-ext" href="https://www.simplx.fr/contact/?objet=Ma-prevention%20%E2%80%93%20demande%20distributeur&amp;utm_source=ma-prevention.fr&amp;utm_medium=referral&amp;utm_campaign=distributeurs" target="_blank" rel="noopener">Page contact SimplX<span class="visually-hidden"> (nouvel onglet)</span><svg class="icon icon--ext" aria-hidden="true"><use href="#i-external"/></svg></a></li>
         </ul>
       </div>
     </div>
@@ -1161,6 +1162,7 @@
         <span>© 2026 SimplX</span>
         <nav aria-label="Informations légales">
           <a href="mentions-legales.html">Mentions légales</a>
+          <a href="cgv.html">CGV</a>
           <a href="mentions-legales.html#donnees">Confidentialité</a>
           <a href="https://www.simplx.fr/">simplx.fr</a>
         </nav>

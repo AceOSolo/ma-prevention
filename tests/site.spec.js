@@ -5,6 +5,13 @@ const { waitForScrollEnd, expectSectionInView, plain, watchErrors } = require(".
 
 const isMobile = (testInfo) => testInfo.project.name === "mobile";
 
+// Contacts SimplX : l'objet et la source signalent une demande venue de Ma-prevention.
+const OBJET = "Ma-prevention – demande distributeur";
+const CONTACT =
+  "https://www.simplx.fr/contact/?objet=Ma-prevention%20%E2%80%93%20demande%20distributeur" +
+  "&utm_source=ma-prevention.fr&utm_medium=referral&utm_campaign=distributeurs";
+const MAIL = "mailto:contact@simplx.fr?subject=Ma-prevention%20%E2%80%93%20demande%20distributeur";
+
 test.describe("Chargement", () => {
   test("la page se charge sans erreur ni ressource manquante", async ({ page }) => {
     const errors = watchErrors(page);
@@ -30,7 +37,7 @@ test.describe("Chargement", () => {
     expect(errors).toEqual([]);
   });
 
-  for (const url of ["/mentions-legales.html", "/404.html"]) {
+  for (const url of ["/mentions-legales.html", "/cgv.html", "/404.html"]) {
     test(`page annexe ${url} sans erreur`, async ({ page }) => {
       const errors = watchErrors(page);
       const res = await page.goto(url);
@@ -86,7 +93,7 @@ test.describe("Liens et boutons", () => {
     const ext = hrefs.filter((h) => /^https?:/.test(h));
     expect(tel).toEqual([]);
     expect(mail.length).toBeGreaterThan(0);
-    expect(new Set(mail)).toEqual(new Set(["mailto:contact@simplx.fr"]));
+    expect(new Set(mail)).toEqual(new Set([MAIL]));
     for (const h of ext) expect(h).toMatch(/^https:\/\/www\.simplx\.fr\//);
     expect(hrefs.filter((h) => h === "" || h === "#")).toEqual([]);
   });
@@ -163,8 +170,6 @@ test.describe("Liens et boutons", () => {
 });
 
 test.describe("SimplX, éditeur et vendeur", () => {
-  const CONTACT = "https://www.simplx.fr/contact/";
-
   test.beforeEach(async ({ context }) => {
     // Réponse locale : pas de dépendance au vrai site pendant les tests.
     await context.route("https://www.simplx.fr/**", (route) =>
@@ -172,7 +177,7 @@ test.describe("SimplX, éditeur et vendeur", () => {
     );
   });
 
-  for (const url of ["/", "/mentions-legales.html", "/404.html"]) {
+  for (const url of ["/", "/mentions-legales.html", "/cgv.html", "/404.html"]) {
     test(`aucune mention de Secutop sur ${url}`, async ({ page, request }) => {
       const source = await (await request.get(url)).text();
       expect(source).not.toMatch(/secutop/i);
@@ -336,7 +341,7 @@ test.describe("Remises volume", () => {
   test("conditions affichées : achat groupé sous 24 heures", async ({ page }) => {
     await page.goto("/#remises");
     await expect(page.locator(".volume__intro")).toContainText("dans les mêmes 24 heures");
-    await expect(page.locator(".stair__off")).toHaveText(["Prix catalogue", "−20 %", "−30 %", "−40 %", "−50 %"]);
+    await expect(page.locator(".stair__off")).toHaveText(["Plein tarif", "−20 %", "−30 %", "−40 %", "−50 %"]);
   });
 });
 
@@ -422,7 +427,10 @@ test.describe("Option espaces référents externalisés", () => {
     await expect(scenarios).toHaveCount(2);
     await expect(scenarios.nth(0)).toContainText("Vous avez les compétences");
     await expect(scenarios.nth(1)).toContainText("Vous n'avez pas les compétences");
-    for (let i = 0; i < 2; i++) await expect(scenarios.nth(i)).toContainText("100 € HT par client et par an");
+    await expect(scenarios.nth(0)).toContainText("100 € HT par client et par an");
+    await expect(scenarios.nth(1)).not.toContainText("100 €");
+    await expect(scenarios.nth(1).locator(".scenario__price dt").first()).toHaveText("Ouverture de l'espace");
+    await expect(scenarios.nth(1).locator(".scenario__price dd").first()).toHaveText("Offerte");
     await expect(scenarios.nth(1)).toContainText("12 % de remise");
     await expect(scenarios.nth(1)).toContainText("apport d'affaires");
     await expect(page.locator("#referents")).toContainText("dans votre marque blanche");
@@ -448,6 +456,132 @@ test.describe("Retours du 21 octobre 2026", () => {
     await expect(page.locator(".hero__actions a")).toHaveText("Voir l'offre");
     await expect(page.locator("#hero-title .hero__line")).toHaveText(["Votre marque.", "Leur sécurité.", "Vos revenus."]);
     await expect(page.locator(".site-footer__baseline")).toHaveText("Votre marque. Leur sécurité. Vos revenus.");
+  });
+});
+
+test.describe("Retours du 22 octobre 2026", () => {
+  test("le tarif dégressif est présenté comme le prix catalogue appliqué par SimplX", async ({ page }) => {
+    await page.goto("/#remises");
+    const intro = page.locator(".volume__intro");
+    await expect(intro.locator(".volume__title")).toHaveText("Plus vos clients prennent de packs, moins ils paient");
+    await expect(intro).toContainText("Le prix catalogue des packs est dégressif : c'est le tarif que SimplX applique");
+    await expect(intro).toContainText("Prix catalogue appliqué par SimplX");
+    await expect(page.locator(".volume__result .sim__total")).toContainText("Prix catalogue pour votre client");
+    const ligne = page.locator(".summary tr", { has: page.locator("th", { hasText: "Tarif dégressif des packs" }) });
+    await expect(ligne).toContainText("Prix catalogue appliqué par SimplX");
+    const faq = page.locator(".faq-item", { has: page.locator("summary", { hasText: "Comment fonctionne le tarif dégressif" }) });
+    await expect(faq.locator(".faq-item__answer")).toContainText("C'est le prix catalogue appliqué par SimplX.");
+    expect(await page.locator("body").innerText()).not.toMatch(/remises volume/i);
+  });
+
+  test("espace référent offert quand le distributeur fait appel à un référent SimplX", async ({ page }) => {
+    await page.goto("/#referents");
+    await expect(page.locator("#referents .scenario--simplx")).toContainText("Sollicitez directement SimplX");
+    await expect(page.locator("#referents .referents__perks")).toContainText("Avec un référent SimplX, l'espace est offert.");
+    const ligne = page.locator(".summary tr", { has: page.locator("th", { hasText: "Espace référent externalisé" }) });
+    await expect(ligne).toContainText("Par client, avec vos intervenants. Avec un référent SimplX : espace offert");
+    const faq = page.locator(".faq-item", { has: page.locator("summary", { hasText: "référent santé-sécurité" }) });
+    await expect(faq.locator(".faq-item__answer")).toContainText("l'espace référent vous est offert");
+  });
+
+  test("les demandes de contact signalent qu'elles viennent de Ma-prevention", async ({ page }) => {
+    for (const url of ["/", "/mentions-legales.html"]) {
+      await page.goto(url);
+      const liens = await page.$$eval('a[href*="simplx.fr/contact"]', (as) => as.map((a) => a.href));
+      expect(liens.length, url).toBeGreaterThan(0);
+      for (const lien of liens) {
+        const params = new URL(lien).searchParams;
+        expect(params.get("objet"), lien).toBe(OBJET);
+        expect(params.get("utm_source"), lien).toBe("ma-prevention.fr");
+      }
+    }
+    await page.goto("/");
+    const mails = await page.$$eval('a[href^="mailto:"]', (as) => as.map((a) => a.getAttribute("href")));
+    expect(mails.length).toBeGreaterThan(0);
+    for (const mail of mails) expect(new URL(mail).searchParams.get("subject"), mail).toBe(OBJET);
+  });
+
+  test("mentions légales : informations de simplx.fr et hébergeur réel", async ({ page }) => {
+    await page.goto("/mentions-legales.html");
+    const prose = page.locator(".prose");
+    for (const texte of [
+      "SimplX, EURL au capital de 10 000 €",
+      "Centre d'Affaires Handfield, 6 rue de Copenhague, 38070 Saint-Quentin-Fallavier",
+      "SIREN : 521 357 392, SIRET du siège : 521 357 392 00070, RCS Vienne",
+      "FR53 521 357 392",
+      "Code APE : 62.02A",
+      "04 28 35 04 32",
+      "Gérant et directeur de la publication : Jean-Philippe Barret",
+      "GitHub, Inc. (service GitHub Pages)",
+    ]) {
+      expect(plain(await prose.innerText()), texte).toContain(texte);
+    }
+    await expect(page.locator('a[href="tel:+33428350432"]')).toHaveCount(1);
+    expect(plain(await prose.innerText())).not.toMatch(/à compléter|SARL|RCS Lyon|15 000/);
+    await expect(prose.locator('a[href="cgv.html"]')).toHaveCount(1);
+  });
+
+  test("CGV : accessibles depuis le pied de page, la synthèse et les mentions légales", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('.site-footer__bottom a[href="cgv.html"]').click();
+    await expect(page).toHaveURL(/cgv\.html$/);
+    await expect(page.locator("h1")).toHaveText("Conditions générales de vente");
+    await page.locator('a:has-text("Retour à l\'offre")').click();
+    await expect(page).toHaveURL(/\/(index\.html)?$/);
+
+    await page.goto("/#synthese");
+    await page.locator('.table-note a[href="cgv.html"]').click();
+    await expect(page).toHaveURL(/cgv\.html$/);
+
+    await page.goto("/mentions-legales.html");
+    await page.locator('.site-footer__bottom a[href="cgv.html"]').click();
+    await expect(page).toHaveURL(/cgv\.html$/);
+  });
+
+  test("CGV : sommaire complet, chaque entrée mène à son article sous l'en-tête", async ({ page }) => {
+    await page.goto("/cgv.html");
+    const liens = page.locator(".toc a");
+    const hrefs = await liens.evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+    const ids = await page.locator(".prose h2[id]").evaluateAll((hs) => hs.map((h) => "#" + h.id));
+    expect(hrefs).toEqual(ids);
+    expect(hrefs.length).toBeGreaterThanOrEqual(15);
+    for (const id of ["#referents", "#juridiction"]) {
+      await page.locator(`.toc a[href="${id}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`cgv\.html${id}$`));
+      await expectSectionInView(page, id.slice(1));
+    }
+  });
+
+  test("CGV : mêmes tarifs que la page de l'offre", async ({ page }) => {
+    await page.goto("/cgv.html");
+    const texte = plain(await page.locator(".prose").innerText());
+    for (const attendu of [
+      "Le fait de passer commande entraîne l'acceptation des présentes conditions générales de vente.",
+      "2 900 € HT, ou 1 900 € HT au tarif early bird",
+      "puis 900 € HT par an",
+      "60 % du prix catalogue",
+      "20 premières marques blanches",
+      "10 codes promo de packs, d'une valeur catalogue de 300 € HT chacun",
+      "Le prix catalogue est le tarif que SimplX applique aux packs",
+      "dans les mêmes 24 heures",
+      "1er pack : 300 € HT, plein tarif",
+      "2e pack : 240 € HT, soit −20 %",
+      "3e pack : 210 € HT, soit −30 %",
+      "4e pack : 180 € HT, soit −40 %",
+      "5e pack et suivants : 150 € HT, soit −50 %",
+      "Le pack Pilotage et plan d'actions est offert dès 3 packs",
+      "Le pack Effectifs et compétences est offert à tous les clients",
+      "100 € HT par client et par an",
+      "L'espace référent n'est alors pas facturé",
+      "remise de 12 % au titre de l'apport d'affaires",
+      "indemnité forfaitaire pour frais de recouvrement de 40 €",
+      "40 ans glissants",
+      "RCS Vienne 521 357 392",
+    ]) {
+      expect(texte, attendu).toContain(attendu);
+    }
+    // Les CGV n'annoncent pas de nombre de packs et ne reprennent aucun terme retiré.
+    expect(texte).not.toMatch(/\b\d+ packs (disponibles|au total)|\bFlex\b|SECUSAM/i);
   });
 });
 
@@ -718,8 +852,6 @@ test.describe("Compteur de places early bird", () => {
 });
 
 test.describe("Contact", () => {
-  const CONTACT = "https://www.simplx.fr/contact/";
-
   test.beforeEach(async ({ context }) => {
     await context.route("https://www.simplx.fr/**", (route) =>
       route.fulfill({ status: 200, contentType: "text/html", body: "<title>Contact SimplX</title>" })
@@ -773,7 +905,7 @@ test.describe("Contact", () => {
   test("e-mail SimplX proposé en alternative", async ({ page }) => {
     await page.goto("/#contact");
     const alt = page.locator(".contact-card__alt");
-    await expect(alt.locator('a[href="mailto:contact@simplx.fr"]')).toBeVisible();
+    await expect(alt.locator(`a[href="${MAIL}"]`)).toBeVisible();
   });
 
   test("aucun formulaire ni envoi de données depuis le site", async ({ page }) => {

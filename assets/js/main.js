@@ -160,7 +160,7 @@
     group.hidden = false;
   }
 
-  /* Exemple de marque blanche : la même plateforme sous SECUSOFT, le thème par défaut ou votre couleur.
+  /* Exemple de marque blanche : la même plateforme avec le thème par défaut ou votre couleur.
      Règles de la charte : texte blanc sur la couleur dès 4,5:1, sinon foncé ;
      liens et repères assombris jusqu'à 4,5:1 sur fond blanc. */
   var BLANC = "#ffffff";
@@ -217,7 +217,6 @@
     var brandInput = document.getElementById("brand-input");
     var persoName = app.querySelector(".app__brand--perso");
     var THEMES = {
-      secusoft: { couleur: "#1fabe3", nom: "Sur le bleu SECUSOFT", aria: "sous la marque SECUSOFT" },
       defaut: { couleur: "#6a18c2", nom: "Avec le violet Ma-prevention, thème par défaut,", aria: "avec le thème par défaut" },
       perso: { nom: "Avec votre couleur", aria: "avec votre couleur" },
     };
@@ -239,11 +238,10 @@
     function apply(theme) {
       var couleur = theme === "perso" ? picker.value : THEMES[theme].couleur;
       var c = couleursMarque(couleur);
-      app.classList.remove("app--secusoft");
       app.style.setProperty("--mb", couleur);
       app.style.setProperty("--mb-sur", c.sur);
       app.style.setProperty("--mb-texte", c.reperes);
-      ["secusoft", "defaut", "perso"].forEach(function (t) {
+      ["defaut", "perso"].forEach(function (t) {
         app.querySelector(".app__brand--" + t).hidden = t !== theme;
       });
       if (theme === "perso") majPerso();

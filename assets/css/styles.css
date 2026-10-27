@@ -831,7 +831,41 @@ strong { font-weight: 700; }
 }
 .note .icon { color: var(--violet); margin-top: 1px; }
 
-/* ---------- Exemple de marque blanche : SECUSOFT ---------- */
+/* ---------- L'éditeur SimplX (dans « Le principe ») ---------- */
+
+.editeur {
+  margin-top: 56px;
+  display: grid;
+  gap: 32px;
+  padding: 28px;
+  background: var(--fond-alt);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-l);
+}
+@media (min-width: 1024px) {
+  .editeur { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 48px; padding: 44px; align-items: start; }
+}
+.editeur__text { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.editeur__text p { color: var(--encre-douce); line-height: 1.6; }
+.editeur__title { font-family: var(--font-titre); font-weight: 800; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); line-height: 1.15; letter-spacing: -0.02em; color: var(--encre); }
+.editeur__side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.editeur__facts { display: grid; gap: 12px; }
+@media (min-width: 560px) { .editeur__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.editeur__facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-m);
+}
+.editeur__value { font-family: var(--font-titre); font-weight: 800; font-size: 1.375rem; line-height: 1.2; color: var(--violet); }
+.editeur__label { font-size: 0.875rem; line-height: 1.5; color: var(--encre-douce); }
+.editeur__refs { font-size: 0.875rem; line-height: 1.6; color: var(--encre-douce); }
+.editeur__refs strong { color: var(--encre); }
+
+/* ---------- Exemple de marque blanche ---------- */
 
 .exemple {
   display: grid;
@@ -885,7 +919,6 @@ strong { font-weight: 700; }
 .theme-switch__btn:hover { border-color: var(--trait-fort); }
 .theme-switch__btn[aria-pressed="true"] { border-color: var(--violet); background: var(--violet-pale); color: var(--violet); }
 .theme-switch__swatch { width: 24px; height: 24px; border-radius: var(--rayon-pastille); flex: none; }
-.theme-switch__swatch--secusoft { background: #1fabe3; }
 .theme-switch__swatch--defaut { background: var(--violet); }
 .theme-switch__custom { position: relative; }
 .theme-switch__custom.is-active { border-color: var(--violet); background: var(--violet-pale); color: var(--violet); }
@@ -916,7 +949,6 @@ strong { font-weight: 700; }
   overflow: hidden;
   color: var(--encre);
 }
-.app--secusoft { --mb: #1fabe3; --mb-sur: #1e1030; --mb-texte: #177fa8; }
 .app__top {
   display: flex;
   align-items: center;
@@ -1550,6 +1582,37 @@ strong { font-weight: 700; }
 .dark-card .h3 { color: var(--sur-nuit); }
 .dark-card p { color: var(--sur-nuit-doux); font-size: 0.9375rem; }
 .dark-card .tile-icon { background: var(--violet); color: var(--sur-nuit); }
+
+/* ---------- Hébergement et sécurité ---------- */
+
+.secu-group + .secu-group { margin-top: 40px; }
+@media (min-width: 900px) { .secu-group + .secu-group { margin-top: 56px; } }
+.secu-group__head { display: flex; align-items: baseline; gap: 12px; }
+.secu-group__num {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--rose-signal);
+}
+.secu-group__title {
+  font-family: var(--font-titre);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--sur-nuit);
+}
+.secu-group__intro { margin: 6px 0 20px; max-width: 62ch; color: var(--sur-nuit-doux); }
+@media (min-width: 900px) { .secu-grid-2 { gap: 20px; } }
+
+.secu-rgpd { display: grid; gap: 24px; margin-top: 40px; padding: 28px; border-color: var(--violet); }
+@media (min-width: 900px) {
+  .secu-rgpd { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 40px; margin-top: 56px; padding: 36px; }
+}
+.secu-rgpd__intro { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.secu-rgpd__intro p { font-size: 1rem; }
+.secu-rgpd__intro .text-link--nuit { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; }
+.secu-rgpd__list { align-self: center; }
 
 /* ---------- Mise en service ---------- */
 

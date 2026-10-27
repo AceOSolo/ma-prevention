@@ -178,6 +178,14 @@ test.describe("SimplX, éditeur et vendeur", () => {
   });
 
   for (const url of ["/", "/mentions-legales.html", "/cgv.html", "/404.html"]) {
+    // SECUSOFT est la plateforme d'un client : elle n'apparaît plus sur le site (retours du 27 octobre 2026).
+    test(`aucune mention de SECUSOFT sur ${url}`, async ({ page, request }) => {
+      const source = await (await request.get(url)).text();
+      expect(source).not.toMatch(/secusoft/i);
+      await page.goto(url);
+      expect(await page.locator("body").innerText()).not.toMatch(/secusoft/i);
+    });
+
     test(`aucune mention de Secutop sur ${url}`, async ({ page, request }) => {
       const source = await (await request.get(url)).text();
       expect(source).not.toMatch(/secutop/i);
@@ -390,7 +398,7 @@ test.describe("Pour qui ?", () => {
 });
 
 test.describe("Captures d'écran", () => {
-  test("deux captures SECUSOFT, une visible à la fois, avec texte alternatif", async ({ page }) => {
+  test("deux captures de la plateforme, une visible à la fois, avec texte alternatif", async ({ page }) => {
     await page.goto("/#captures");
     const shots = page.locator("#captures .shot");
     await expect(shots).toHaveCount(2);
@@ -454,8 +462,8 @@ test.describe("Retours du 21 octobre 2026", () => {
     await page.goto("/");
     await expect(page.locator(".hero__actions a")).toHaveCount(1);
     await expect(page.locator(".hero__actions a")).toHaveText("Voir l'offre");
-    await expect(page.locator("#hero-title .hero__line")).toHaveText(["Votre marque.", "Leur sécurité.", "Vos revenus."]);
-    await expect(page.locator(".site-footer__baseline")).toHaveText("Votre marque. Leur sécurité. Vos revenus.");
+    await expect(page.locator("#hero-title .hero__line")).toHaveText(["Votre marque.", "Leur sécurité.", "Notre plateforme."]);
+    await expect(page.locator(".site-footer__baseline")).toHaveText("Votre marque. Leur sécurité. Notre plateforme.");
   });
 });
 
@@ -582,6 +590,51 @@ test.describe("Retours du 22 octobre 2026", () => {
     }
     // Les CGV n'annoncent pas de nombre de packs et ne reprennent aucun terme retiré.
     expect(texte).not.toMatch(/\b\d+ packs (disponibles|au total)|\bFlex\b|SECUSAM/i);
+  });
+});
+
+test.describe("Retours du 27 octobre 2026", () => {
+  test("pas de « Vos revenus » en ouverture : baseline, partage et profil experts-comptables", async ({ page, request }) => {
+    const source = await (await request.get("/")).text();
+    expect(source).not.toMatch(/vos revenus/i);
+    await page.goto("/");
+    expect(await page.locator(".hero").innerText()).not.toMatch(/revenu/i);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Ma-prevention | Votre marque. Leur sécurité. Notre plateforme.");
+    // Les experts-comptables ne peuvent pas tirer de revenus de leurs clients : aucun argument financier dans leur profil.
+    expect(await page.locator("#profil-comptables").evaluate((n) => n.textContent)).not.toMatch(/revenu|marge|facturation/i);
+    expect(await page.locator("#profil-assureurs").evaluate((n) => n.textContent)).not.toMatch(/revenu|marge|facturation/i);
+  });
+
+  test("SimplX présenté comme éditeur : historique, agrément, références et lien vers simplx.fr", async ({ page }) => {
+    await page.goto("/#editeur");
+    const bloc = page.locator("#editeur");
+    await expect(bloc.locator(".editeur__title")).toHaveText("SimplX, l'éditeur derrière Ma-prevention");
+    await expect(bloc).toContainText("depuis 2015");
+    await expect(bloc.locator(".editeur__facts li")).toHaveCount(4);
+    await expect(bloc.locator(".editeur__facts")).toContainText("crédit d'impôt innovation");
+    await expect(bloc.locator(".editeur__facts")).toContainText("Digital League");
+    await expect(bloc.locator(".editeur__refs")).toContainText("Société Générale");
+    const lien = bloc.locator('a[href^="https://www.simplx.fr/notre-agence-simplx/"]');
+    await expect(lien).toHaveAttribute("target", "_blank");
+    await expect(lien).toHaveAttribute("href", /utm_source=ma-prevention\.fr/);
+    await expect(page.locator(".faq-item", { hasText: "Qui est SimplX" }).locator('a[href="#editeur"]')).toHaveCount(1);
+  });
+
+  test("hébergement et sécurité : France, OVHcloud, redondance, sauvegardes 3-2-1, MFA", async ({ page }) => {
+    await page.goto("/#securite");
+    const section = page.locator("#securite");
+    await expect(section.locator(".secu-group__title")).toHaveText(["L'hébergement", "La base de données", "La cybersécurité", "Le RGPD, écrit dans le contrat"]);
+    await expect(section.locator(".feature")).toHaveCount(13);
+    await expect(section.locator(".secu-rgpd__list li")).toHaveCount(4);
+    await expect(section.locator('.secu-rgpd a[href="cgv.html#donnees"]')).toHaveCount(1);
+    const texte = await section.innerText();
+    for (const attendu of ["100 % français", "OVHcloud", "serveur privé", "répartiteur de charge", "3-2-1", "hors site", "multifacteur",
+      "pas exposée sur internet", "Cloisonnée par client", "40 ans", "chiffrée", "hachée", "article 28 du RGPD", "72 heures"]) {
+      expect(texte.replace(/\u00a0/g, " ")).toContain(attendu);
+    }
+    const faq = page.locator(".faq-item", { hasText: "Où sont hébergées les données" });
+    await expect(faq.locator('a[href="#securite"]')).toHaveCount(1);
+    await expect(page.locator('.site-footer a[href="#securite"]')).toHaveCount(1);
   });
 });
 
@@ -958,18 +1011,18 @@ test.describe("Sans JavaScript", () => {
     await context.close();
   });
 
-  test("l'exemple SECUSOFT reste lisible sans JavaScript, sans commandes inactives", async ({ browser, baseURL }, testInfo) => {
+  test("l'exemple de marque blanche reste lisible sans JavaScript, sans commandes inactives", async ({ browser, baseURL }, testInfo) => {
     const { context, page } = await noJsPage(browser, baseURL, testInfo);
     await page.goto("/#exemple");
     await expect(page.locator(".js-theme-switch")).toBeHidden();
-    await expect(page.locator('.app__brand--secusoft img[alt="SECUSOFT"]')).toBeVisible();
-    await expect(page.locator(".app__brand--defaut")).toBeHidden();
-    await expect(page.locator(".app__button")).toHaveCSS("color", "rgb(30, 16, 48)");
+    await expect(page.locator('.app__brand--defaut img[alt="ma-prevention"]')).toBeVisible();
+    await expect(page.locator(".app__brand--perso")).toBeHidden();
+    await expect(page.locator(".app__button")).toHaveCSS("color", "rgb(255, 255, 255)");
     await context.close();
   });
 });
 
-test.describe("Exemple de marque blanche : SECUSOFT", () => {
+test.describe("Exemple de marque blanche", () => {
   const contrast = (page) =>
     page.locator(".js-app").evaluate((app) => {
       const btn = app.querySelector(".app__button");
@@ -990,29 +1043,31 @@ test.describe("Exemple de marque blanche : SECUSOFT", () => {
       return { bouton: ratio(cs.color, cs.backgroundColor), repere: ratio(tab.borderBottomColor, "rgb(255, 255, 255)") };
     });
 
-  test("SECUSOFT affiché par défaut, avec son logo et un bouton lisible", async ({ page }) => {
+  test("thème par défaut affiché d'abord, avec le logo Ma-prevention et un bouton lisible", async ({ page }) => {
     await page.goto("/#exemple");
-    await expect(page.locator('.theme-switch__btn[data-theme="secusoft"]')).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator('.app__brand--secusoft img[alt="SECUSOFT"]')).toBeVisible();
-    await expect(page.locator(".js-app")).toHaveAttribute("aria-label", /sous la marque SECUSOFT/);
+    await expect(page.locator(".theme-switch__btn")).toHaveCount(2);
+    await expect(page.locator('.theme-switch__btn[data-theme="defaut"]')).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('.app__brand--defaut img[alt="ma-prevention"]')).toBeVisible();
+    await expect(page.locator(".js-app")).toHaveAttribute("aria-label", /avec le thème par défaut/);
+    await expect(page.locator(".app__button")).toHaveCSS("background-color", "rgb(106, 24, 194)");
+    await expect(page.locator(".app__button")).toHaveCSS("color", "rgb(255, 255, 255)");
     const c = await contrast(page);
     expect(c.bouton).toBeGreaterThanOrEqual(4.5);
     expect(c.repere).toBeGreaterThanOrEqual(4.5);
-    await expect(page.locator(".js-theme-rule")).toContainText("6,8:1");
+    await expect(page.locator(".js-theme-rule")).toContainText("8,3:1");
   });
 
-  test("bascule vers le thème par défaut puis retour à SECUSOFT", async ({ page }) => {
+  test("bascule vers votre couleur puis retour au thème par défaut", async ({ page }) => {
     await page.goto("/#exemple");
+    await page.locator("#theme-color").fill("#00487b");
+    await expect(page.locator('.theme-switch__btn[data-theme="defaut"]')).toHaveAttribute("aria-pressed", "false");
+    await expect(page.locator(".app__brand--perso")).toBeVisible();
+    await expect(page.locator(".app__brand--defaut")).toBeHidden();
     await page.locator('.theme-switch__btn[data-theme="defaut"]').click();
     await expect(page.locator('.theme-switch__btn[data-theme="defaut"]')).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator('.theme-switch__btn[data-theme="secusoft"]')).toHaveAttribute("aria-pressed", "false");
-    await expect(page.locator('.app__brand--defaut img[alt="ma-prevention"]')).toBeVisible();
-    await expect(page.locator(".app__brand--secusoft")).toBeHidden();
-    await expect(page.locator(".app__button")).toHaveCSS("background-color", "rgb(106, 24, 194)");
-    await expect(page.locator(".app__button")).toHaveCSS("color", "rgb(255, 255, 255)");
-    await expect(page.locator(".js-theme-rule")).toContainText("blanc");
-    await page.locator('.theme-switch__btn[data-theme="secusoft"]').click();
-    await expect(page.locator('.app__brand--secusoft')).toBeVisible();
+    await expect(page.locator(".theme-switch__custom")).not.toHaveClass(/is-active/);
+    await expect(page.locator(".app__brand--defaut")).toBeVisible();
+    await expect(page.locator(".js-theme-rule")).toContainText("8,3:1");
   });
 
   for (const [couleur, texte] of [["#ffcc00", "foncé"], ["#e30613", "blanc"], ["#00487b", "blanc"], ["#ffffff", "foncé"], ["#7fd1ff", "foncé"]]) {
@@ -1094,7 +1149,7 @@ test.describe("Clavier et accessibilité", () => {
   });
 
   // La charte Ma-prevention passe les contrastes AA : l'audit les vérifie, sur chaque thème de l'aperçu.
-  for (const theme of ["secusoft", "defaut", "perso"]) {
+  for (const theme of ["defaut", "perso"]) {
     test(`audit axe, contrastes compris (aperçu ${theme})`, async ({ browser, baseURL }, testInfo) => {
       // bypassCSP : l'outil d'audit est injecté en script inline, bloqué par la CSP d'Apache.
       const context = await browser.newContext({ ...testInfo.project.use, baseURL, bypassCSP: true, reducedMotion: "reduce" });

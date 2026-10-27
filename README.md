@@ -1,8 +1,10 @@
 # ma-prevention.fr
 
-Site vitrine (one-page) de l'offre distributeur **Ma-prevention** : la plateforme de prévention des risques QHSE en marque blanche et ses packs (l'IA est intégrée à la plateforme, ce n'est pas un pack), éditée et vendue par **SimplX**. **SECUSOFT** y est présenté comme exemple de marque blanche (section `#exemple`) et en captures d'écran (section `#captures`).
+Site vitrine (one-page) de l'offre distributeur **Ma-prevention** : la plateforme de prévention des risques QHSE en marque blanche et ses packs (l'IA est intégrée à la plateforme, ce n'est pas un pack), éditée et vendue par **SimplX**, présenté comme éditeur dans le bloc `#editeur`. La page montre un exemple de marque blanche interactif (section `#exemple`), des captures d'écran de la plateforme (section `#captures`) et l'hébergement et la sécurité (section `#securite`).
 
-Baseline : « Votre marque. Leur sécurité. Vos revenus. »
+Le site ne cite aucune marque blanche existante : SECUSOFT est la plateforme d'un client, elle n'y apparaît pas (test de garde). Sur les captures, le logo de la marque et celui de l'entreprise de démonstration sont masqués (« Votre logo », « MP »).
+
+Baseline : « Votre marque. Leur sécurité. Notre plateforme. » (depuis le 27/10/2026 : « Vos revenus » ne parlait pas aux assureurs ni aux experts-comptables, qui ne peuvent pas tirer de revenus de leurs clients).
 
 L'identité suit la charte graphique Ma-prevention (logo « l'étiquette », violet, rose, trait d'union), publiée sur claude.ai : https://claude.ai/artifact/Gv4hqXBWUKW1ox5t71obPY (privée tant qu'elle n'est pas partagée).
 
@@ -24,8 +26,8 @@ assets/
   js/main.js            Menu mobile, aperçu de marque, onglets (profils, captures), exemple de marque blanche,
                         tarif dégressif, simulateur de marge, compteur de places
   fonts/                Bricolage Grotesque, Atkinson Hyperlegible Next et Mono auto-hébergées (licence SIL OFL)
-  img/                  Logos Ma-prevention (SVG), logo SimplX (pied de page), logo SECUSOFT (exemple), favicons, image de partage
-  img/captures/         Captures SECUSOFT (WebP, pleine taille et version -960 pour les petits écrans)
+  img/                  Logos Ma-prevention (SVG), logo SimplX (pied de page), favicons, image de partage
+  img/captures/         Captures de la plateforme, logos masqués (WebP, pleine taille et version -960 pour les petits écrans)
 ```
 
 ## Réglages courants
@@ -43,7 +45,9 @@ assets/
 | Prix catalogue d'un pack (remises et simulateur) | `assets/js/main.js`, constante `PRIX_PACK` |
 | Captures d'écran | `assets/img/captures/` : déposer la capture en WebP en deux tailles (`nom.webp` et `nom-960.webp`), puis ajouter un bouton d'onglet et un panneau `.shot-panel` dans la section `#captures` |
 | Baseline | `index.html` : hero (`#hero-title`), pied de page (`.site-footer__baseline`), `og:title` ; image de partage `assets/img/og-image.png` |
-| Exemple de marque blanche (SECUSOFT) | `index.html`, section `#exemple` ; couleur dans `assets/js/main.js` (`THEMES`) et `styles.css` (`.app--secusoft`, affichage sans JavaScript) |
+| Exemple de marque blanche | `index.html`, section `#exemple` ; thèmes dans `assets/js/main.js` (`THEMES`) |
+| Présentation de SimplX | `index.html`, bloc `#editeur` à la fin de la section `#principe` (faits repris de https://www.simplx.fr/notre-agence-simplx/, relevés le 27/10/2026), et question « Qui est SimplX » de la FAQ |
+| Hébergement et sécurité | `index.html`, section `#securite` et question « Où sont hébergées les données » de la FAQ |
 
 Après une modification de `styles.css` ou `main.js`, incrémentez le paramètre `?v=…` dans les balises `<link>` et `<script>` des trois pages pour que les navigateurs rechargent les fichiers.
 
@@ -108,8 +112,9 @@ Le dossier `tests/` contient une suite Playwright (Chromium, format desktop 1440
 - tarif dégressif présenté comme le prix catalogue de SimplX (montants de 1 à 5 packs, Pilotage et plan d'actions offert dès 3), profils « Pour qui ? » (clic et clavier), captures d'écran, option référents (espace offert avec un référent SimplX) ;
 - mentions légales conformes à simplx.fr et CGV (sommaire, tarifs identiques à ceux de la page) ;
 - mentions retirées : Flex, SECUSAM, espaces « Je cherche / Je propose », « Réserver ma place » ;
-- exemple SECUSOFT : bascule entre SECUSOFT, le thème par défaut et une couleur libre, contrastes d'au moins 4,5:1 sur le bouton et les repères, affichage sans JavaScript ;
-- bouton de contact et liens vers simplx.fr (ouverture dans un nouvel onglet vers la bonne adresse, objet et source Ma-prevention sur chaque lien de contact), aucune mention de Secutop ;
+- exemple de marque blanche : bascule entre le thème par défaut et une couleur libre, contrastes d'au moins 4,5:1 sur le bouton et les repères, affichage sans JavaScript ;
+- bouton de contact et liens vers simplx.fr (ouverture dans un nouvel onglet vers la bonne adresse, objet et source Ma-prevention sur chaque lien de contact), aucune mention de Secutop ni de SECUSOFT ;
+- retours du 27 octobre 2026 : baseline sans « Vos revenus », profils assureurs et experts-comptables sans argument financier, bloc éditeur SimplX, section hébergement et sécurité ;
 - clavier et accessibilité (lien d'évitement, focus visible, audit axe contrastes compris, sur chaque thème de l'exemple) ;
 - si un Apache est disponible, le `.htaccess`.
 

@@ -25,6 +25,7 @@ assets/
                         violet #6a18c2, rose #d1196c, nuit #1e1030, trait d'union #ff3d8b)
   js/main.js            Menu mobile, aperçu de marque, onglets (profils, captures), exemple de marque blanche,
                         tarif dégressif, simulateur de marge, compteur de places
+  js/analytics.js       Google Analytics (G-DFL6H7MGQE), actif seulement sur ma-prevention.fr
   fonts/                Bricolage Grotesque, Atkinson Hyperlegible Next et Mono auto-hébergées (licence SIL OFL)
   img/                  Logos Ma-prevention (SVG), logo SimplX (pied de page), favicons, image de partage
   img/captures/         Captures de la plateforme, logos masqués (WebP, pleine taille et version -960 pour les petits écrans)

@@ -72,7 +72,8 @@ test.describe("Liens et boutons", () => {
     for (let i = 0; i < count; i++) {
       const el = clickables.nth(i);
       const info = await el.evaluate((n) => ({
-        skip: n.classList.contains("skip-link") || !!n.closest(".hp"),
+        // Un bouton désactivé (flèche de la frise arrivée au bout) n'a pas à répondre au clic.
+        skip: n.classList.contains("skip-link") || !!n.closest(".hp") || n.disabled === true,
         label: `${n.tagName.toLowerCase()} ${n.id ? "#" + n.id : ""} ${(n.textContent || n.getAttribute("href") || "").trim().slice(0, 40)}`,
       }));
       if (info.skip) continue;
@@ -638,6 +639,67 @@ test.describe("Retours du 27 octobre 2026", () => {
   });
 });
 
+test.describe("Mises à jour de la plateforme", () => {
+  test("frise des versions, de la plus ancienne à la plus récente, ouverte sur la dernière", async ({ page }) => {
+    await page.goto("/#mises-a-jour");
+    await page.waitForLoadState("load");
+    const section = page.locator("#mises-a-jour");
+    const cards = section.locator(".maj__card");
+    const n = await cards.count();
+    expect(n).toBeGreaterThanOrEqual(20);
+    // Dates croissantes, versions et titres renseignés.
+    const dates = await section.locator(".maj__card time").evaluateAll((ts) => ts.map((t) => t.getAttribute("datetime")));
+    expect(dates).toHaveLength(n);
+    expect([...dates].sort()).toEqual(dates);
+    for (const d of dates) expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    await expect(section.locator(".maj__version")).toHaveCount(n);
+    await expect(section.locator(".maj__title")).toHaveCount(n);
+    // Repères posés par le script sur la première et la dernière version.
+    await expect(cards.first().locator(".maj__flag")).toHaveText("Première version");
+    await expect(cards.last().locator(".maj__flag")).toHaveText("Dernière version");
+    await expect(cards.last()).toHaveClass(/maj__card--latest/);
+    await expect(section.locator(".maj__flag")).toHaveCount(2);
+    // Résumé recalculé à partir des cartes.
+    await expect(section.locator(".js-maj-count")).toHaveText(`${n} versions`);
+    await expect(section.locator(".js-maj-since")).toHaveText("octobre 2025");
+    // La frise s'ouvre sur la dernière version.
+    const track = section.locator(".maj__track");
+    await expect.poll(() => track.evaluate((t) => t.scrollWidth - t.clientWidth - t.scrollLeft)).toBeLessThanOrEqual(2);
+    const visible = await track.evaluate((t) => {
+      const tr = t.getBoundingClientRect();
+      const c = t.querySelector(".maj__card:last-child").getBoundingClientRect();
+      return c.left >= tr.left - 1 && c.right <= tr.right + 1;
+    });
+    expect(visible, "dernière version entièrement visible dans la frise").toBe(true);
+  });
+
+  test("les flèches font défiler la frise", async ({ page }, testInfo) => {
+    test.skip(isMobile(testInfo), "flèches masquées sur mobile : la frise se fait défiler au doigt");
+    await page.goto("/#mises-a-jour");
+    await page.waitForLoadState("load");
+    const track = page.locator("#mises-a-jour .maj__track");
+    const prev = page.locator('#mises-a-jour .maj__arrow[data-dir="-1"]');
+    const next = page.locator('#mises-a-jour .maj__arrow[data-dir="1"]');
+    await expect(next).toBeDisabled();
+    await expect(prev).toBeEnabled();
+    const end = await track.evaluate((t) => t.scrollLeft);
+    await prev.click();
+    await expect.poll(() => track.evaluate((t) => t.scrollLeft)).toBeLessThan(end - 100);
+    await expect(next).toBeEnabled();
+    await next.click();
+    await expect.poll(() => track.evaluate((t) => t.scrollWidth - t.clientWidth - t.scrollLeft)).toBeLessThanOrEqual(2);
+  });
+
+  test("aucun terme réservé à une autre marque dans les mises à jour", async ({ page }) => {
+    await page.goto("/#mises-a-jour");
+    const texte = await page.locator("#mises-a-jour").innerText();
+    expect(texte).not.toMatch(/secusoft|secusam|secutop|\bFlex\b/i);
+    // Termes propres à une marque blanche cliente, remplacés par des termes génériques (retours du 18 novembre 2026).
+    expect(texte).not.toMatch(/prescripteur|chèques? cadeaux|premium|prev.lingo|portail formateur|fournisseur|QVCT/i);
+    await expect(page.locator('.site-footer a[href="#mises-a-jour"]')).toHaveCount(1);
+  });
+});
+
 test.describe("Menu mobile", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(!isMobile(testInfo), "menu mobile uniquement");
@@ -1005,6 +1067,10 @@ test.describe("Sans JavaScript", () => {
     await expect(profils).toHaveCount(6);
     for (let i = 0; i < 6; i++) await expect(profils.nth(i)).toBeVisible();
     for (const id of ["capture-abonnements", "capture-referent"]) await expect(page.locator(`#${id}`)).toBeVisible();
+    // Frise des mises à jour : liste défilante, sans flèches ni barre de progression.
+    await expect(page.locator("#mises-a-jour .js-maj-nav")).toBeHidden();
+    await expect(page.locator("#mises-a-jour .js-maj-progress")).toBeHidden();
+    await expect(page.locator("#mises-a-jour .maj__card").first()).toBeVisible();
     // Exemple chiffré pour 3 packs, lisible tel quel.
     await expect(page.locator(".js-volume-case")).toContainText("3");
     await expect(page.locator(".js-volume-total")).toContainText("750");

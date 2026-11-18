@@ -1684,6 +1684,160 @@ strong { font-weight: 700; }
 }
 .pill .icon { color: var(--violet); }
 
+/* ---------- Mises à jour : frise des versions, de la plus ancienne à la plus récente ---------- */
+
+.maj__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.maj__stats {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  align-self: flex-start;
+  margin: 4px 0 0;
+  background: var(--violet-pale);
+  border-radius: var(--rayon-l);
+  padding: 10px 18px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.maj__stats .icon { color: var(--violet); margin-top: 1px; }
+
+.maj__nav { display: flex; gap: 10px; flex-shrink: 0; }
+.maj__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--trait);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--violet);
+  cursor: pointer;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out, border-color 0.15s ease-out;
+}
+.maj__arrow:hover:not(:disabled) { background: var(--violet); border-color: var(--violet); color: var(--sur-nuit); }
+.maj__arrow:disabled { opacity: 0.4; cursor: default; }
+
+.maj__track {
+  display: flex;
+  gap: 16px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 6px var(--gutter) 20px;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+}
+.maj__track:focus-visible { outline-offset: -2px; }
+/* Avec JavaScript, flèches et barre de progression remplacent la barre de défilement. */
+.maj.is-ready .maj__track { scrollbar-width: none; }
+.maj.is-ready .maj__track::-webkit-scrollbar { display: none; }
+
+.maj__card {
+  flex: 0 0 min(320px, 84%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-snap-align: start;
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-m);
+  padding: 22px;
+}
+.maj__card:last-child { scroll-snap-align: end; }
+.maj__card--latest { border-color: var(--violet); box-shadow: var(--ombre-s); }
+
+.maj__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  border-radius: var(--rayon-pilule);
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--rose);
+  color: var(--sur-nuit);
+}
+.maj__flag .icon { width: 14px; height: 14px; }
+.maj__flag--first { background: var(--violet-pale); color: var(--violet); }
+
+.maj__meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.maj__version {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--violet);
+  background: var(--violet-pale);
+  border-radius: var(--rayon-pilule);
+  padding: 3px 12px;
+}
+.maj__date {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+.maj__title {
+  margin: 0;
+  font-family: var(--font-titre);
+  font-size: 1.125rem;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.maj__list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.maj__list li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--encre-douce);
+}
+/* Le trait d'union de la charte en guise de puce */
+.maj__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 10px;
+  height: 4px;
+  border-radius: var(--rayon-pilule);
+  background: var(--rose-signal);
+}
+
+.maj__progress { height: 6px; background: var(--trait); border-radius: var(--rayon-pilule); overflow: hidden; }
+.maj__bar {
+  height: 100%;
+  width: 20%;
+  background: var(--rose-signal);
+  border-radius: var(--rayon-pilule);
+  transition: width 0.2s ease-out, transform 0.2s ease-out;
+}
+
+@media (max-width: 767px) {
+  .maj__nav { display: none; }
+  .maj__card,
+  .maj__card:last-child { scroll-snap-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .maj__arrow,
+  .maj__bar { transition: none; }
+}
+
 /* ---------- Synthèse ---------- */
 
 .table-wrap {

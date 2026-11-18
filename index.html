@@ -30,8 +30,8 @@
 
   <link rel="preload" href="assets/fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/styles.css?v=9">
-  <script src="assets/js/main.js?v=4" defer></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=10">
+  <script src="assets/js/main.js?v=5" defer></script>
 
   <script type="application/ld+json">
   {
@@ -85,6 +85,8 @@
     <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
     <symbol id="i-message" viewBox="0 0 24 24"><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
     <symbol id="i-server" viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></symbol>
     <symbol id="i-store" viewBox="0 0 24 24"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.770-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"/><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.870"/><circle cx="9" cy="7" r="4"/></symbol>
@@ -1118,6 +1120,229 @@
       </div>
     </section>
 
+    <section class="section section--alt" id="mises-a-jour" aria-labelledby="maj-title">
+      <div class="container">
+        <div class="maj js-maj">
+          <div class="maj__head">
+            <div class="section-head section-head--flush">
+              <span class="eyebrow">Mises à jour</span>
+              <h2 class="h2" id="maj-title">Une plateforme qui évolue en continu</h2>
+              <p class="lead">SimplX met régulièrement en ligne de nouvelles versions de <span class="nobr">Ma-prevention</span>. Chacune profite à tous vos clients, sous votre marque, sans rien installer de leur côté.</p>
+              <p class="maj__stats"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh"/></svg><span><strong class="js-maj-count">20&nbsp;versions</strong> mises en ligne depuis <span class="js-maj-since">octobre 2025</span>, la dernière le <span class="js-maj-last">18&nbsp;novembre 2026</span></span></p>
+            </div>
+            <div class="maj__nav js-maj-nav" hidden>
+              <button class="maj__arrow" type="button" data-dir="-1" aria-label="Versions précédentes"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+              <button class="maj__arrow" type="button" data-dir="1" aria-label="Versions suivantes"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+            </div>
+          </div>
+          <ol class="maj__track" tabindex="0" aria-label="Versions de la plateforme, de la plus ancienne à la plus récente">
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.20.0</span><time class="maj__date" datetime="2025-10-10">10&nbsp;oct. 2025</time></div>
+              <h3 class="maj__title">Accès des salariés au DUERP</h3>
+              <ul class="maj__list">
+                <li>Notification des salariés des comptes mono-site</li>
+                <li>Consultation du DUERP par les salariés disposant d'un compte</li>
+                <li>Intégration du DUERP aux modèles de documents</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.20.3</span><time class="maj__date" datetime="2025-11-14">14&nbsp;nov. 2025</time></div>
+              <h3 class="maj__title">Parrainage et suivi des contacts</h3>
+              <ul class="maj__list">
+                <li>Programme de parrainage entre utilisateurs</li>
+                <li>Accueil simplifié des utilisateurs invités</li>
+                <li>Suivi des contacts enrichi</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.20.5</span><time class="maj__date" datetime="2025-12-03">3&nbsp;déc. 2025</time></div>
+              <h3 class="maj__title">Espace partenaire et&nbsp;FAQ</h3>
+              <ul class="maj__list">
+                <li>Codes de réduction gérés depuis l'espace partenaire</li>
+                <li>Champ de recherche ajouté à la&nbsp;FAQ</li>
+                <li>Pilotes DUERP&nbsp;: affichage des contacts externes</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.21</span><time class="maj__date" datetime="2026-01-21">21&nbsp;janv. 2026</time></div>
+              <h3 class="maj__title">Activation des packs en autonomie</h3>
+              <ul class="maj__list">
+                <li>Activation d'un pack directement depuis la plateforme</li>
+                <li>Facturation générée automatiquement à l'activation</li>
+                <li>Délai de paiement de 30&nbsp;jours, sans interruption d'accès</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.22.0</span><time class="maj__date" datetime="2026-02-25">25&nbsp;févr. 2026</time></div>
+              <h3 class="maj__title">Refonte de l'ergonomie et nouveautés du DUERP</h3>
+              <ul class="maj__list">
+                <li>Interfaces interlocuteurs et salariés repensées</li>
+                <li>DUERP en onglets et gestion dédiée des pièces jointes</li>
+                <li>Glossaire de la prévention intégré</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.23.0</span><time class="maj__date" datetime="2026-03-05">5&nbsp;mars 2026</time></div>
+              <h3 class="maj__title">Espace prestataires repensé</h3>
+              <ul class="maj__list">
+                <li>Première connexion des prestataires simplifiée</li>
+                <li>Saisie des compétences et catalogue améliorés</li>
+                <li>Validation de profil plus fluide</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.24</span><time class="maj__date" datetime="2026-03-20">20&nbsp;mars 2026</time></div>
+              <h3 class="maj__title">Notifications, chat et sécurité renforcée</h3>
+              <ul class="maj__list">
+                <li>Centre de notifications centralisé</li>
+                <li>Chat en direct intégré</li>
+                <li>Authentification à deux facteurs (MFA)</li>
+                <li>Nouveaux indicateurs de pilotage (KPI)</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.25</span><time class="maj__date" datetime="2026-03-25">25&nbsp;mars 2026</time></div>
+              <h3 class="maj__title">Refonte complète de l'interface</h3>
+              <ul class="maj__list">
+                <li>Nouveau menu de navigation</li>
+                <li>Rendu des pages et pictogrammes harmonisés</li>
+                <li>Mise en avant des packs métiers</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.26</span><time class="maj__date" datetime="2026-04-14">14&nbsp;avr. 2026</time></div>
+              <h3 class="maj__title">Registre AT et paramétrage du DUERP</h3>
+              <ul class="maj__list">
+                <li>Nouveau registre des accidents du travail</li>
+                <li>Export des remontées terrain</li>
+                <li>DUERP paramétrable&nbsp;: actions de maîtrise et risques personnalisés</li>
+                <li>Signature du DUERP</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.26.4</span><time class="maj__date" datetime="2026-04-17">17&nbsp;avr. 2026</time></div>
+              <h3 class="maj__title">Registre d'accessibilité et pilotes</h3>
+              <ul class="maj__list">
+                <li>Nouveau registre d'accessibilité intégré</li>
+                <li>Affectation d'un pilote aux remontées terrain</li>
+                <li>Choix des pilotes externes simplifié</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.28.23</span><time class="maj__date" datetime="2026-05-28">28&nbsp;mai 2026</time></div>
+              <h3 class="maj__title">Import du DUERP et gestion des bâtiments</h3>
+              <ul class="maj__list">
+                <li>Import du DUERP depuis un modèle Excel</li>
+                <li>Nouvelle gestion par bâtiment et par&nbsp;zone</li>
+                <li>Souscription du DUERP simplifiée et pack métier sur mesure</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.29.10</span><time class="maj__date" datetime="2026-07-03">3&nbsp;juil. 2026</time></div>
+              <h3 class="maj__title">Contrôles, catalogue et registre&nbsp;AT</h3>
+              <ul class="maj__list">
+                <li>Gestion des contrôles repensée&nbsp;: contrôlés / non contrôlés, contrôleur interne</li>
+                <li>Catalogue personnel et duplication de matériel</li>
+                <li>Registre AT modernisé avec gestion des non-conformités</li>
+                <li>Nouveau centre de notifications et suivi des tickets</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.29.20</span><time class="maj__date" datetime="2026-07-24">24&nbsp;juil. 2026</time></div>
+              <h3 class="maj__title">Mises au rebut et plan d'actions global</h3>
+              <ul class="maj__list">
+                <li>Filtre «&nbsp;mis au rebut&nbsp;» sur les pages EPI et équipements</li>
+                <li>Mise au rebut directe depuis la page des écarts</li>
+                <li>Liste des contextes d'actions mise à&nbsp;jour</li>
+                <li>7&nbsp;imports automatisés&nbsp;: matériels et habilitations</li>
+                <li>Contrôle réalisable par toute personne disposant du QR Code du matériel</li>
+                <li>Nouveau flux de remontées terrain et consultation du dossier et de la dotation de chaque employé</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.30.5</span><time class="maj__date" datetime="2026-08-06">6&nbsp;août 2026</time></div>
+              <h3 class="maj__title">GED, rapports IA et documents de prévention&nbsp;v2</h3>
+              <ul class="maj__list">
+                <li>Ajout de la GED (gestion électronique des documents)</li>
+                <li>Rapport de contrôle généré par&nbsp;IA</li>
+                <li>Plan de prévention v2&nbsp;et protocole de sécurité&nbsp;v2</li>
+                <li>Permis de travail&nbsp;v2</li>
+                <li>Refonte du registre de saisie d'entreprise</li>
+                <li>Prise de rendez-vous en ligne depuis la plateforme</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.30.19</span><time class="maj__date" datetime="2026-09-11">11&nbsp;sept. 2026</time></div>
+              <h3 class="maj__title">Assistant IA, menus simplifiés et packs</h3>
+              <ul class="maj__list">
+                <li>Amélioration de l'espace référent externalisé</li>
+                <li>Refonte des menus de navigation</li>
+                <li>Nomenclature des risques améliorée</li>
+                <li>Mise à jour du catalogue des EPI et du matériel</li>
+                <li>Mise à jour du centre de notifications</li>
+                <li>Ajout de l'évaluation électrique au sein de la plateforme</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.31.31</span><time class="maj__date" datetime="2026-10-14">14&nbsp;oct. 2026</time></div>
+              <h3 class="maj__title">Espace formateur et choix des services</h3>
+              <ul class="maj__list">
+                <li>Nouvelle version de l'espace formateur</li>
+                <li>Nouvelle interface de choix des services</li>
+                <li>Catalogue de services enrichi</li>
+                <li>Connexion en deux étapes (2FA) plus fluide</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.31.44</span><time class="maj__date" datetime="2026-10-20">20&nbsp;oct. 2026</time></div>
+              <h3 class="maj__title">Import des effectifs et filtres du DUERP</h3>
+              <ul class="maj__list">
+                <li>Espace formateur ajusté</li>
+                <li>Import des effectifs sur plusieurs profils professionnels</li>
+                <li>Rattachement des salariés aux unités de travail et aux postes</li>
+                <li>Filtres par unité de travail et par poste dans le DUERP</li>
+                <li>Affichage et export des salariés par poste</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.31.48</span><time class="maj__date" datetime="2026-10-26">26&nbsp;oct. 2026</time></div>
+              <h3 class="maj__title">Droits par pack et passeport de prévention</h3>
+              <ul class="maj__list">
+                <li>Droits des gestionnaires définis pack par&nbsp;pack</li>
+                <li>Export et import du NIR pour le passeport de prévention</li>
+                <li>Espace formateur mis à&nbsp;jour</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.31.54</span><time class="maj__date" datetime="2026-10-29">29&nbsp;oct. 2026</time></div>
+              <h3 class="maj__title">Registre de maintenance et sécurité renforcée</h3>
+              <ul class="maj__list">
+                <li>Nouveau registre de maintenance des équipements</li>
+                <li>Relance automatique des actions de maintenance</li>
+                <li>Import simplifié des NIR des salariés</li>
+                <li>Données isolées par profil professionnel et par&nbsp;site</li>
+                <li>Plusieurs arrêts de travail par accident (AT/MP)</li>
+                <li>Départ du visiteur déclaré en rescannant le QR&nbsp;Code</li>
+              </ul>
+            </li>
+            <li class="maj__card">
+              <div class="maj__meta"><span class="maj__version">v1.31.75</span><time class="maj__date" datetime="2026-11-18">18&nbsp;nov. 2026</time></div>
+              <h3 class="maj__title">Signatures AT, QR Codes mobiles et recyclages</h3>
+              <ul class="maj__list">
+                <li>Signature de la fiche AT par la victime et le donneur de soins</li>
+                <li>Mode opératoire intégré à l'analyse 5&nbsp;Pourquoi</li>
+                <li>Parcours QR Code repensés pour le téléphone</li>
+                <li>Import en masse des contrôles VGP (Excel ou&nbsp;CSV)</li>
+                <li>Nouvel onglet «&nbsp;Recyclage&nbsp;» avec alertes d'échéance</li>
+                <li>Page «&nbsp;Écarts&nbsp;» refondue et plus rapide</li>
+              </ul>
+            </li>
+          </ol>
+          <div class="maj__progress js-maj-progress" aria-hidden="true" hidden><div class="maj__bar"></div></div>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="mise-en-service" aria-labelledby="service-title">
       <div class="container">
         <div class="section-head">
@@ -1280,6 +1505,7 @@
           <li><a href="#tarifs">Tarifs</a></li>
           <li><a href="#modele">Modèle économique</a></li>
           <li><a href="#securite">Hébergement et sécurité</a></li>
+          <li><a href="#mises-a-jour">Mises à jour</a></li>
           <li><a href="#mise-en-service">Mise en service</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>

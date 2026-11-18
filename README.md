@@ -1,6 +1,6 @@
 # ma-prevention.fr
 
-Site vitrine (one-page) de l'offre distributeur **Ma-prevention** : la plateforme de prévention des risques QHSE en marque blanche et ses packs (l'IA est intégrée à la plateforme, ce n'est pas un pack), éditée et vendue par **SimplX**, présenté comme éditeur dans le bloc `#editeur`. La page montre un exemple de marque blanche interactif (section `#exemple`), des captures d'écran de la plateforme (section `#captures`) et l'hébergement et la sécurité (section `#securite`).
+Site vitrine (one-page) de l'offre distributeur **Ma-prevention** : la plateforme de prévention des risques QHSE en marque blanche et ses packs (l'IA est intégrée à la plateforme, ce n'est pas un pack), éditée et vendue par **SimplX**, présenté comme éditeur dans le bloc `#editeur`. La page montre un exemple de marque blanche interactif (section `#exemple`), des captures d'écran de la plateforme (section `#captures`), l'hébergement et la sécurité (section `#securite`), et la frise des mises à jour de la plateforme (section `#mises-a-jour`).
 
 Le site ne cite aucune marque blanche existante : SECUSOFT est la plateforme d'un client, elle n'y apparaît pas (test de garde). Sur les captures, le logo de la marque et celui de l'entreprise de démonstration sont masqués (« Votre logo », « MP »).
 
@@ -49,6 +49,7 @@ assets/
 | Exemple de marque blanche | `index.html`, section `#exemple` ; thèmes dans `assets/js/main.js` (`THEMES`) |
 | Présentation de SimplX | `index.html`, bloc `#editeur` à la fin de la section `#principe` (faits repris de https://www.simplx.fr/notre-agence-simplx/, relevés le 27/10/2026), et question « Qui est SimplX » de la FAQ |
 | Hébergement et sécurité | `index.html`, section `#securite` et question « Où sont hébergées les données » de la FAQ |
+| Mises à jour de la plateforme | `index.html`, section `#mises-a-jour` : copier la dernière carte `<li class="maj__card">` à la fin de la liste `.maj__track` et changer version, date (`datetime` au format AAAA-MM-JJ et date affichée), titre et points. Les repères « Première version » et « Dernière version », le nombre de versions et les dates du résumé se mettent à jour seuls (`initUpdates` dans `main.js`). Aucune marque blanche ni « SECUSAM » dans les textes (dire « espace référent externalisé ») |
 
 Après une modification de `styles.css` ou `main.js`, incrémentez le paramètre `?v=…` dans les balises `<link>` et `<script>` des trois pages pour que les navigateurs rechargent les fichiers.
 

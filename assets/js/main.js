@@ -313,7 +313,95 @@
     });
   }
 
+  /* Mises à jour : frise des versions. Pour ajouter une version, ajoutez une carte .maj__card
+     à la fin de la liste : les repères « Première version » et « Dernière version », le nombre
+     de versions et les dates du résumé se mettent à jour seuls. Sans JavaScript, la frise
+     reste une liste défilante, sans flèches ni barre de progression. */
+  var MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+
+  function initUpdates() {
+    var root = document.querySelector(".js-maj");
+    if (!root) return;
+    var track = root.querySelector(".maj__track");
+    var cards = track.querySelectorAll(".maj__card");
+    var n = cards.length;
+    if (!n) return;
+
+    function flag(card, cls, icon, label) {
+      var el = document.createElement("span");
+      el.className = "maj__flag" + (cls ? " " + cls : "");
+      el.innerHTML = (icon ? '<svg class="icon" aria-hidden="true"><use href="#' + icon + '"/></svg>' : "") + label;
+      card.insertBefore(el, card.firstChild);
+    }
+    cards[n - 1].classList.add("maj__card--latest");
+    flag(cards[n - 1], "", "i-sparkles", "Dernière version");
+    if (n > 1) flag(cards[0], "maj__flag--first", "", "Première version");
+
+    function iso(card) {
+      var t = card.querySelector("time");
+      return t ? t.getAttribute("datetime").split("-").map(Number) : null;
+    }
+    var first = iso(cards[0]);
+    var last = iso(cards[n - 1]);
+    var count = root.querySelector(".js-maj-count");
+    var since = root.querySelector(".js-maj-since");
+    var lastEl = root.querySelector(".js-maj-last");
+    if (count) count.textContent = n + " version" + (n > 1 ? "s" : "");
+    if (since && first) since.textContent = MOIS[first[1] - 1] + " " + first[0];
+    if (lastEl && last) lastEl.textContent = last[2] + " " + MOIS[last[1] - 1] + " " + last[0];
+
+    var nav = root.querySelector(".js-maj-nav");
+    var progress = root.querySelector(".js-maj-progress");
+    var bar = progress.querySelector(".maj__bar");
+    var arrows = nav.querySelectorAll(".maj__arrow");
+    nav.hidden = false;
+    progress.hidden = false;
+    root.classList.add("is-ready");
+
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var atEnd = true;
+
+    function step() {
+      var gap = parseFloat(getComputedStyle(track).columnGap) || 16;
+      return cards[0].getBoundingClientRect().width + gap;
+    }
+    function ui() {
+      var max = track.scrollWidth - track.clientWidth;
+      var x = track.scrollLeft;
+      arrows[0].disabled = x <= 2;
+      atEnd = x >= max - 2;
+      arrows[1].disabled = atEnd;
+      var visible = track.clientWidth / track.scrollWidth;
+      var r = max > 0 ? x / max : 0;
+      var w = Math.max(8, Math.min(100, visible * 100));
+      bar.style.width = w + "%";
+      bar.style.transform = "translateX(" + (r * (100 - w) / w * 100) + "%)";
+    }
+    function toLatest() {
+      track.scrollLeft = track.scrollWidth;
+      ui();
+    }
+
+    Array.prototype.forEach.call(arrows, function (a) {
+      a.addEventListener("click", function () {
+        var s = step();
+        var max = track.scrollWidth - track.clientWidth;
+        var target = track.scrollLeft + s * Number(a.getAttribute("data-dir"));
+        /* Moins d'une demi-carte avant un bout : on va jusqu'au bout. */
+        if (target > max - s / 2) target = max;
+        if (target < s / 2) target = 0;
+        track.scrollTo({ left: target, behavior: reduce.matches ? "auto" : "smooth" });
+      });
+    });
+    track.addEventListener("scroll", function () { window.requestAnimationFrame(ui); }, { passive: true });
+    /* Un redimensionnement relance l'accroche : la frise reste sur la dernière version si elle y était. */
+    window.addEventListener("resize", function () { if (atEnd) toLatest(); else ui(); });
+    toLatest();
+    window.addEventListener("load", toLatest);
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+    initUpdates();
     initMenu();
     initBrandPreview();
     document.querySelectorAll(".js-tabs").forEach(initTabs);

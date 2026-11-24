@@ -42,7 +42,7 @@ sources/                Deck source des présentations (.pptx) : local uniquemen
 | Lien du bouton « Contacter SimplX » et objet des e-mails | `index.html` : section `#contact`, pied de page et FAQ (3 liens vers simplx.fr/contact, 3 liens `mailto:`) ; `mentions-legales.html`. Garder les mêmes paramètres partout (constantes `OBJET`, `CONTACT` et `MAIL` des tests). |
 | Liste et contenu des packs | `index.html`, section `#packs` (et question « Quels packs… » de la FAQ). Les noms reprennent ceux de la plateforme (écran « Mes abonnements »). Le site n'annonce volontairement aucun nombre de packs : il évolue avec les packs à venir. |
 | Profils de distributeurs (« Pour qui ? ») | `index.html`, section `#pour-qui` : un bouton d'onglet et un panneau `.profile` par profil (7 profils, franchiseurs compris), chacun avec son bloc `.profile__doc` vers sa présentation PDF |
-| Présentations PDF par profil | Voir « Présentations par profil » ci-dessous : deck dans `sources/`, script `outils/generer-presentations.ps1`, PDF dans `documents/`, constante `FORMULAIRE_PRESENTATION` de `assets/js/main.js` |
+| Présentations PDF par profil | Voir « Présentations par profil » ci-dessous : deck dans `sources/`, script `outils/generer-presentations.ps1`, PDF dans `documents/`, formulaire `#demande`, constante `WEBHOOK_PRESENTATION` de `assets/js/main.js` |
 | Tarif dégressif des packs (prix catalogue appliqué par SimplX) | `assets/js/main.js`, constantes `REMISES` et `SEUIL_PILOTAGE` ; textes et escalier des prix dans `index.html` (bloc `#remises`, synthèse, FAQ) et `cgv.html` (article 6) |
 | Option espaces référents | `index.html`, section `#referents` (et synthèse, FAQ) et `cgv.html` (articles 10 et 11). L'espace est facturé 100 € HT par client et par an avec les intervenants du distributeur, offert avec un référent SimplX. |
 | Conditions générales de vente | `cgv.html` : mettre à jour la date de version en tête de page à chaque modification, et reporter tout changement de tarif fait dans `index.html` |
@@ -67,7 +67,7 @@ Ce qui est fusionné dans `main` est en ligne après quelques minutes.
 
 Limites de GitHub Pages, qui ne sert que des fichiers statiques :
 
-- Pas de PHP : le site n'a donc pas de formulaire, le bouton de contact mène à https://www.simplx.fr/contact/.
+- Pas de PHP : aucun traitement côté serveur. Le formulaire de demande de présentation envoie ses données à un webhook Make (voir « Présentations par profil »), le bouton de contact mène à https://www.simplx.fr/contact/.
 - Le `.htaccess` est ignoré (redirections, en-têtes de sécurité). GitHub gère lui-même le HTTPS (option *Enforce HTTPS* dans Settings > Pages). Le `.htaccess` reste utile si le site passe un jour sur l'hébergement web OVH.
 
 ### Origine des demandes de contact
@@ -94,18 +94,15 @@ Le script prend comme socle toutes les slides placées avant la slide « MODULES
 
 Le deck reste hors du dépôt (`sources/` est ignoré par git) : ses notes d'orateur sont internes. Les PDF ne reprennent pas les notes.
 
-**Collecte des coordonnées.** Le site n'a pas de formulaire (GitHub Pages). Les coordonnées sont recueillies par un formulaire SimplX, qui redirige vers le PDF une fois envoyé :
+**Collecte des coordonnées.** Le bouton « Recevoir la présentation » ouvre le formulaire `#demande` (boîte de dialogue à la fin de `#pour-qui`) : prénom, nom, organisation, e-mail, téléphone facultatif, case d'accord obligatoire et champ piège anti-robots `site`, invisible. À l'envoi :
 
-- tant que `FORMULAIRE_PRESENTATION` est vide dans `assets/js/main.js`, le bouton « Recevoir la présentation » télécharge le PDF directement (Google Analytics compte les téléchargements de PDF avec la mesure améliorée, événement `file_download`) ;
-- une fois le formulaire créé sur simplx.fr, renseigner son adresse dans `FORMULAIRE_PRESENTATION` (et incrémenter `main.js?v=`) : le bouton ouvre alors ce formulaire dans un nouvel onglet, avec `?profil=<profil>` et les paramètres UTM (`utm_content=presentation-<profil>`).
+1. les champs, avec `profil`, `profil_libelle` et `page`, partent en POST vers le webhook Make « [Ma-prevention] - Demande de présentation (site) » (constante `WEBHOOK_PRESENTATION` de `assets/js/main.js`) ;
+2. le PDF du profil se télécharge (après la réponse du webhook, 4 secondes d'attente au plus : un webhook en panne ne bloque pas le visiteur) ;
+3. le scénario Make « [Ma-prevention] - Demande de présentation → mail à JPB » envoie la demande par e-mail (Brevo, expéditeur « Ma-prevention (site) ») à Jean-Philippe Barret ; répondre à l'e-mail écrit au prospect. Le scénario filtre les envois sans e-mail ou sans accord, et ceux où le champ piège est rempli.
 
-Le formulaire « Formulaire de contact » de simplx.fr ne convient pas tel quel : il sert à tous les produits SimplX (champ « Objet » en liste déroulante : Ma-Prévention, EasyQuiz, Move4Good…), une redirection vers le PDF y toucherait toutes les demandes. Réglages à faire par l'administrateur de simplx.fr (Ninja Forms) :
+Google Analytics reçoit l'événement `generate_lead` avec le profil, sans donnée personnelle. Sans JavaScript, le bouton télécharge le PDF directement, sans collecte.
 
-1. dupliquer « Formulaire de contact » en « Présentation Ma-prevention » ; retirer le champ « Objet » et le message (ou le rendre facultatif) ; ajouter un champ « Organisation » obligatoire et garder Cloudflare Turnstile ;
-2. ajouter un champ caché de clé `profil`, valeur par défaut `{querystring:profil}`, et un champ caché `origine` de valeur `{querystring:utm_source}` ;
-3. action « Notification e-mail » vers SimplX, sujet `Ma-prevention – présentation {field:profil}`, message `{all_fields_table}` ; garder l'action « Enregistrer la soumission » ;
-4. action « Rediriger » vers `https://ma-prevention.fr/documents/ma-prevention-presentation-{field:profil}.pdf` ;
-5. placer ce formulaire sur une page dédiée non indexée, par exemple `https://www.simplx.fr/presentation-ma-prevention/`, puis donner son adresse pour `FORMULAIRE_PRESENTATION`.
+**Le scénario Make doit être actif.** Au 24/11/2026, le forfait Make limite le compte à 2 scénarios actifs, déjà occupés (publication LinkedIn et lecture des statistiques LinkedIn) : le scénario a été créé inactif. Tant qu'il l'est, les demandes attendent dans la file du webhook (50 au plus) et partent à son activation. Le formulaire est décrit dans la politique de confidentialité (`mentions-legales.html`, paragraphe `#presentation`) ; le `.htaccess` autorise `https://hook.eu2.make.com` dans la CSP (`connect-src`). Les tests interceptent le webhook : ils n'envoient jamais de vraie demande.
 
 Les PDF restent accessibles à qui connaît leur adresse (site statique) ; `robots.txt` les tient hors des moteurs de recherche et ils ne figurent pas dans `sitemap.xml`.
 
@@ -152,7 +149,7 @@ Le dossier `tests/` contient une suite Playwright (Chromium, format desktop 1440
 - exemple de marque blanche : bascule entre le thème par défaut et une couleur libre, contrastes d'au moins 4,5:1 sur le bouton et les repères, affichage sans JavaScript ;
 - bouton de contact et liens vers simplx.fr (ouverture dans un nouvel onglet vers la bonne adresse, objet et source Ma-prevention sur chaque lien de contact), aucune mention de Secutop ni de SECUSOFT ;
 - retours du 27 octobre 2026 : baseline sans « Vos revenus », profils assureurs et experts-comptables sans argument financier, bloc éditeur SimplX, section hébergement et sécurité ;
-- présentations par profil : un PDF de 16 pages par profil, téléchargement direct ou passage par le formulaire SimplX quand `FORMULAIRE_PRESENTATION` est renseigné, PDF hors des moteurs de recherche, deck source ignoré par git, profil franchiseurs sans centrale d'achat ni conditions négociées ;
+- présentations par profil : un PDF de 16 pages par profil, formulaire de demande (profil repris, rien n'est envoyé sans les champs obligatoires et l'accord, envoi au webhook puis téléchargement, champ piège, audit axe), PDF hors des moteurs de recherche, deck source ignoré par git, profil franchiseurs sans centrale d'achat ni conditions négociées ;
 - clavier et accessibilité (lien d'évitement, focus visible, audit axe contrastes compris, sur chaque thème de l'exemple) ;
 - si un Apache est disponible, le `.htaccess`.
 

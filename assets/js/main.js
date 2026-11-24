@@ -8,11 +8,13 @@
   var REMISES = [0, 0.2, 0.3, 0.4, 0.5];
   /* Pack Pilotage et plan d'actions offert à partir de ce nombre de packs achetés. */
   var SEUIL_PILOTAGE = 3;
-  /* Présentations PDF par profil (dossier documents/, boutons [data-presentation]).
-     Vide : le bouton télécharge le PDF directement.
-     Adresse du formulaire SimplX dédié : le bouton y mène d'abord, avec le profil en paramètre,
-     et le formulaire redirige vers le PDF une fois envoyé (README, « Présentations par profil »). */
-  var FORMULAIRE_PRESENTATION = "";
+  /* Présentations PDF par profil (dossier documents/, boutons [data-presentation]) : le bouton ouvre le
+     formulaire #demande, les coordonnées partent vers le webhook Make « [Ma-prevention] - Demande de
+     présentation (site) », qui les envoie par e-mail, puis le PDF se télécharge (README, « Présentations
+     par profil »). Sans JavaScript, le bouton télécharge le PDF directement. */
+  var WEBHOOK_PRESENTATION = "https://hook.eu2.make.com/84xgun27qtwzetli0gynscbkqh3k3p73";
+  /* Attente maximale du webhook avant de lancer le téléchargement, en millisecondes */
+  var DELAI_ENVOI = 4000;
 
   function formatEuros(n) {
     return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " €";
@@ -405,26 +407,76 @@
     window.addEventListener("load", toLatest);
   }
 
-  /* Présentations par profil : passage par le formulaire SimplX quand il est configuré */
-  function initPresentations() {
-    if (!FORMULAIRE_PRESENTATION) return;
+  /* Présentations par profil : formulaire de coordonnées, puis téléchargement du PDF */
+  function initDemande() {
+    var dialog = document.getElementById("demande");
+    if (!dialog || typeof dialog.showModal !== "function") return;
+    var form = dialog.querySelector(".js-demande-form");
+    var done = dialog.querySelector(".js-demande-done");
+    var title = document.getElementById("demande-title");
+    var error = dialog.querySelector(".js-demande-error");
+    var submit = dialog.querySelector(".js-demande-submit");
+    var pdfLink = dialog.querySelector(".js-demande-pdf");
+    var current = null;
+
+    function download(href) {
+      var a = document.createElement("a");
+      a.href = href;
+      a.download = "";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
     document.querySelectorAll("[data-presentation]").forEach(function (link) {
-      var profil = link.getAttribute("data-presentation");
-      link.href = FORMULAIRE_PRESENTATION + "?profil=" + encodeURIComponent(profil) +
-        "&utm_source=ma-prevention.fr&utm_medium=referral&utm_campaign=distributeurs" +
-        "&utm_content=presentation-" + encodeURIComponent(profil);
-      link.removeAttribute("download");
-      link.target = "_blank";
-      link.rel = "noopener";
-      var hint = document.createElement("span");
-      hint.className = "visually-hidden";
-      hint.textContent = " (nouvel onglet)";
-      link.appendChild(hint);
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        current = link;
+        var label = link.closest(".profile__doc").querySelector("strong");
+        title.textContent = label ? label.textContent : "Recevoir la présentation";
+        form.elements.profil.value = link.getAttribute("data-presentation");
+        form.elements.profil_libelle.value = link.getAttribute("data-libelle") || "";
+        pdfLink.href = link.getAttribute("href");
+        form.hidden = false;
+        done.hidden = true;
+        error.hidden = true;
+        submit.disabled = false;
+        dialog.showModal();
+      });
+    });
+
+    dialog.querySelectorAll(".js-demande-close").forEach(function (btn) {
+      btn.addEventListener("click", function () { dialog.close(); });
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        error.textContent = "Renseignez les champs obligatoires et cochez la case d'accord pour recevoir la présentation.";
+        error.hidden = false;
+        form.reportValidity();
+        return;
+      }
+      error.hidden = true;
+      submit.disabled = true;
+      var data = new URLSearchParams(new FormData(form));
+      data.append("page", location.href.split("#")[0]);
+      /* Le webhook ne renvoie pas d'en-têtes CORS : envoi « no-cors », réponse illisible mais requête traitée. */
+      var sent = fetch(WEBHOOK_PRESENTATION, { method: "POST", mode: "no-cors", body: data, keepalive: true })
+        .catch(function () {});
+      var wait = new Promise(function (resolve) { setTimeout(resolve, DELAI_ENVOI); });
+      Promise.race([sent, wait]).then(function () {
+        if (window.gtag) window.gtag("event", "generate_lead", { profil: form.elements.profil.value });
+        download(current.getAttribute("href"));
+        form.hidden = true;
+        done.hidden = false;
+        done.querySelector(".demande__title").focus();
+      });
     });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    initPresentations();
+    initDemande();
     initUpdates();
     initMenu();
     initBrandPreview();

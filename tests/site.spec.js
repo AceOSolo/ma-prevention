@@ -264,32 +264,123 @@ test.describe("Présentations par profil", () => {
     }
   });
 
-  test("le bouton télécharge le PDF du profil affiché", async ({ page }) => {
+  // Le webhook Make n'est jamais appelé pour de vrai pendant les tests : chaque envoi est intercepté.
+  const WEBHOOK = "https://hook.eu2.make.com/84xgun27qtwzetli0gynscbkqh3k3p73";
+  async function interceptWebhook(page) {
+    const envois = [];
+    await page.route("https://hook.eu2.make.com/**", (route) => {
+      envois.push({ url: route.request().url(), method: route.request().method(), body: route.request().postData() || "" });
+      route.fulfill({ status: 200, body: "Accepted" });
+    });
+    return envois;
+  }
+
+  test("le bouton ouvre le formulaire du profil et n'envoie rien tant qu'il n'est pas rempli", async ({ page }) => {
+    const envois = await interceptWebhook(page);
     await page.goto("/#pour-qui");
     await page.locator("#tab-franchiseurs").click();
-    const downloadPromise = page.waitForEvent("download");
-    await page.locator("#profil-franchiseurs .profile__doc a").click();
-    const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe("ma-prevention-presentation-franchiseurs.pdf");
+    const bouton = page.locator("#profil-franchiseurs .profile__doc a");
+    await bouton.click();
+    const dialog = page.locator("#demande");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("#demande-title")).toHaveText("La présentation pour les franchiseurs");
+    await expect(dialog.locator('input[name="profil"]')).toHaveValue("franchiseurs");
+    await expect(dialog.locator('input[name="profil_libelle"]')).toHaveValue("Franchiseurs");
+    // Envoi à vide : message d'erreur, rien ne part, pas de téléchargement.
+    await dialog.locator(".js-demande-submit").click();
+    await expect(dialog.locator(".js-demande-error")).toBeVisible();
+    // Coordonnées sans la case d'accord : toujours rien.
+    await dialog.locator("#demande-prenom").fill("Camille");
+    await dialog.locator("#demande-nom").fill("Martin");
+    await dialog.locator("#demande-org").fill("Enseigne Test");
+    await dialog.locator("#demande-email").fill("camille.martin@example.com");
+    await dialog.locator(".js-demande-submit").click();
+    await expect(dialog.locator(".js-demande-done")).toBeHidden();
+    expect(envois).toEqual([]);
+    // Échap ferme le formulaire et rend le focus au bouton.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(bouton).toBeFocused();
   });
 
-  test("formulaire SimplX configuré : le bouton y mène avec le profil, dans un nouvel onglet", async ({ page }) => {
-    const FORM = "https://www.simplx.fr/presentation-ma-prevention/";
-    await page.route("**/assets/js/main.js*", async (route) => {
-      const body = (await (await route.fetch()).text()).replace('FORMULAIRE_PRESENTATION = ""', `FORMULAIRE_PRESENTATION = "${FORM}"`);
-      await route.fulfill({ contentType: "application/javascript", body });
-    });
-    await page.goto("/");
-    const link = page.locator("#profil-franchiseurs .profile__doc a");
-    await expect(link).toHaveAttribute(
-      "href",
-      `${FORM}?profil=franchiseurs&utm_source=ma-prevention.fr&utm_medium=referral&utm_campaign=distributeurs&utm_content=presentation-franchiseurs`
-    );
-    await expect(link).not.toHaveAttribute("download");
-    await expect(link).toHaveAttribute("target", "_blank");
-    await expect(link).toHaveAttribute("rel", /noopener/);
+  test("formulaire rempli : coordonnées envoyées au webhook, puis PDF du profil téléchargé", async ({ page }) => {
+    const envois = await interceptWebhook(page);
+    await page.goto("/#pour-qui");
     await page.locator("#tab-franchiseurs").click();
-    await expect(link).toHaveAccessibleName(/nouvel onglet/);
+    await page.locator("#profil-franchiseurs .profile__doc a").click();
+    const dialog = page.locator("#demande");
+    await dialog.locator("#demande-prenom").fill("Camille");
+    await dialog.locator("#demande-nom").fill("Martin");
+    await dialog.locator("#demande-org").fill("Enseigne Test");
+    await dialog.locator("#demande-email").fill("camille.martin@example.com");
+    await dialog.locator("#demande-tel").fill("04 00 00 00 00");
+    await dialog.locator("#demande-consent").check();
+    const downloadPromise = page.waitForEvent("download");
+    await dialog.locator(".js-demande-submit").click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("ma-prevention-presentation-franchiseurs.pdf");
+
+    expect(envois).toHaveLength(1);
+    expect(envois[0].url).toBe(WEBHOOK);
+    expect(envois[0].method).toBe("POST");
+    const champs = Object.fromEntries(new URLSearchParams(envois[0].body));
+    expect(champs).toMatchObject({
+      profil: "franchiseurs",
+      profil_libelle: "Franchiseurs",
+      prenom: "Camille",
+      nom: "Martin",
+      org: "Enseigne Test",
+      email: "camille.martin@example.com",
+      tel: "04 00 00 00 00",
+      consentement: "oui",
+      site: "",
+    });
+    expect(champs.page).toMatch(/\/$|\/index\.html$/);
+
+    await expect(dialog.locator(".js-demande-done")).toBeVisible();
+    await expect(dialog.locator(".js-demande-done .demande__title")).toHaveText("Merci, votre présentation se télécharge");
+    await expect(dialog.locator(".js-demande-pdf")).toHaveAttribute("href", "documents/ma-prevention-presentation-franchiseurs.pdf");
+    await dialog.locator(".js-demande-done .js-demande-close").click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test("le formulaire reprend le profil de chaque bouton", async ({ page }) => {
+    await interceptWebhook(page);
+    await page.goto("/#pour-qui");
+    for (const [id, slug] of Object.entries(PRESENTATIONS)) {
+      await page.locator(`[aria-controls="${id}"]`).click();
+      await page.locator(`#${id} .profile__doc a`).click();
+      await expect(page.locator('#demande input[name="profil"]')).toHaveValue(slug);
+      await expect(page.locator("#demande-title")).toHaveText(await page.locator(`#${id} .profile__doc strong`).textContent());
+      await page.locator("#demande .demande__close").click();
+      await expect(page.locator("#demande")).toBeHidden();
+    }
+  });
+
+  test("champ piège anti-robots invisible et hors du parcours clavier, accord RGPD obligatoire", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#profil-reseaux .profile__doc a").click();
+    const piege = page.locator("#demande-site");
+    await expect(piege).toHaveAttribute("tabindex", "-1");
+    await expect(page.locator(".demande__hp")).toHaveAttribute("aria-hidden", "true");
+    const box = await piege.boundingBox();
+    expect(box === null || box.x + box.width < 0).toBe(true);
+    await expect(page.locator("#demande-consent")).toHaveAttribute("required", "");
+    await expect(page.locator('#demande .demande__consent a[href="mentions-legales.html#donnees"]')).toBeVisible();
+  });
+
+  test("audit axe du formulaire ouvert, contrastes compris", async ({ browser, baseURL }, testInfo) => {
+    const context = await browser.newContext({ ...testInfo.project.use, baseURL, bypassCSP: true, reducedMotion: "reduce" });
+    const page = await context.newPage();
+    await page.goto("/");
+    await page.locator("#profil-reseaux .profile__doc a").click();
+    await page.locator("#demande .js-demande-submit").click();
+    await expect(page.locator("#demande .js-demande-error")).toBeVisible();
+    await page.addScriptTag({ content: fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8") });
+    const result = await page.evaluate(() => window.axe.run("#demande", { runOnly: ["wcag2a", "wcag2aa", "best-practice"] }));
+    const violations = result.violations.map((v) => `${v.id} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`);
+    expect(violations).toEqual([]);
+    await context.close();
   });
 
   test("les PDF restent hors des moteurs de recherche et le deck source hors du site", async ({ request }) => {
@@ -1101,13 +1192,15 @@ test.describe("Contact", () => {
     await expect(alt.locator(`a[href="${MAIL}"]`)).toBeVisible();
   });
 
-  test("aucun formulaire ni envoi de données depuis le site", async ({ page }) => {
+  test("aucun envoi de données sans action du visiteur : seul formulaire, la demande de présentation", async ({ page }) => {
     const posts = [];
     page.on("request", (r) => {
       if (r.method() !== "GET") posts.push(r.url());
     });
     await page.goto("/");
-    expect(await page.locator("form").count()).toBe(0);
+    await expect(page.locator("form")).toHaveCount(1);
+    await expect(page.locator("#demande form")).toHaveCount(1);
+    await expect(page.locator("#demande")).toBeHidden();
     await page.locator(".contact-card__cta").scrollIntoViewIfNeeded();
     expect(posts).toEqual([]);
   });

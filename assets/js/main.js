@@ -8,6 +8,11 @@
   var REMISES = [0, 0.2, 0.3, 0.4, 0.5];
   /* Pack Pilotage et plan d'actions offert à partir de ce nombre de packs achetés. */
   var SEUIL_PILOTAGE = 3;
+  /* Présentations PDF par profil (dossier documents/, boutons [data-presentation]).
+     Vide : le bouton télécharge le PDF directement.
+     Adresse du formulaire SimplX dédié : le bouton y mène d'abord, avec le profil en paramètre,
+     et le formulaire redirige vers le PDF une fois envoyé (README, « Présentations par profil »). */
+  var FORMULAIRE_PRESENTATION = "";
 
   function formatEuros(n) {
     return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " €";
@@ -400,7 +405,26 @@
     window.addEventListener("load", toLatest);
   }
 
+  /* Présentations par profil : passage par le formulaire SimplX quand il est configuré */
+  function initPresentations() {
+    if (!FORMULAIRE_PRESENTATION) return;
+    document.querySelectorAll("[data-presentation]").forEach(function (link) {
+      var profil = link.getAttribute("data-presentation");
+      link.href = FORMULAIRE_PRESENTATION + "?profil=" + encodeURIComponent(profil) +
+        "&utm_source=ma-prevention.fr&utm_medium=referral&utm_campaign=distributeurs" +
+        "&utm_content=presentation-" + encodeURIComponent(profil);
+      link.removeAttribute("download");
+      link.target = "_blank";
+      link.rel = "noopener";
+      var hint = document.createElement("span");
+      hint.className = "visually-hidden";
+      hint.textContent = " (nouvel onglet)";
+      link.appendChild(hint);
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+    initPresentations();
     initUpdates();
     initMenu();
     initBrandPreview();

@@ -1058,8 +1058,13 @@ strong { font-weight: 700; }
   gap: 8px;
   margin-bottom: 16px;
 }
-@media (min-width: 640px) { .tabs--profiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } }
-@media (min-width: 1024px) { .tabs--profiles { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+/* 7 profils : le dernier onglet occupe toute la ligne sur 2 colonnes */
+.tabs--profiles .tabs__btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+  .tabs--profiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .tabs--profiles .tabs__btn:last-child:nth-child(odd) { grid-column: auto; }
+}
+@media (min-width: 1024px) { .tabs--profiles { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
 .tabs--profiles .tabs__btn {
   flex-direction: column;
   align-items: flex-start;
@@ -1097,6 +1102,23 @@ strong { font-weight: 700; }
 .profile__title { font-family: var(--font-titre); font-size: 1.625rem; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; color: var(--encre); text-wrap: balance; }
 .profile__who { font-size: 0.9375rem; color: var(--encre-douce); }
 .profile__why { font-size: 1.0625rem; line-height: 1.6; color: var(--encre); }
+/* Présentation PDF du profil */
+.profile__doc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 16px;
+  border-radius: var(--rayon-m);
+  background: var(--violet-pale);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--encre);
+}
+.profile__doc strong { display: block; font-family: var(--font-titre); font-size: 1.0625rem; font-weight: 800; margin-bottom: 2px; }
+.profile__doc .btn { background: var(--surface); }
+.profile__doc .btn:hover { background: var(--surface); }
 .profile__cols { display: grid; gap: 28px; }
 @media (min-width: 640px) { .profile__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .profile__label { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--violet); margin-bottom: 14px; }

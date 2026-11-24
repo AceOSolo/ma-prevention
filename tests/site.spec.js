@@ -233,6 +233,83 @@ test.describe("SimplX, éditeur et vendeur", () => {
   });
 });
 
+test.describe("Présentations par profil", () => {
+  // Une présentation PDF par profil : le socle commun (14 pages) et les 2 pages du module de la cible.
+  const PRESENTATIONS = {
+    "profil-reseaux": "reseaux",
+    "profil-assureurs": "assureurs",
+    "profil-comptables": "experts-comptables",
+    "profil-prevoyance": "prevoyance",
+    "profil-banques": "banques",
+    "profil-consultants": "consultants",
+    "profil-franchiseurs": "franchiseurs",
+  };
+  const pdfUrl = (slug) => `documents/ma-prevention-presentation-${slug}.pdf`;
+
+  test("chaque profil propose sa présentation, un PDF de 16 pages", async ({ page, request }) => {
+    await page.goto("/");
+    await expect(page.locator("#pour-qui [data-presentation]")).toHaveCount(Object.keys(PRESENTATIONS).length);
+    for (const [id, slug] of Object.entries(PRESENTATIONS)) {
+      const link = page.locator(`#${id} .profile__doc a`);
+      await expect(link).toHaveAttribute("href", pdfUrl(slug));
+      await expect(link).toHaveAttribute("download", "");
+      await expect(link).toHaveText("Recevoir la présentation");
+      const res = await request.get(`/${pdfUrl(slug)}`);
+      expect(res.status(), pdfUrl(slug)).toBe(200);
+      const pdf = (await res.body()).toString("latin1");
+      expect(pdf.startsWith("%PDF-")).toBe(true);
+      // Nombre de pages déclaré par l'arbre des pages (/Type /Pages … /Count n).
+      const counts = [...pdf.matchAll(/\/Type\s*\/Pages[^>]*?\/Count\s+(\d+)|\/Count\s+(\d+)[^>]*?\/Type\s*\/Pages/g)].map((m) => Number(m[1] || m[2]));
+      expect(Math.max(...counts), pdfUrl(slug)).toBe(16);
+    }
+  });
+
+  test("le bouton télécharge le PDF du profil affiché", async ({ page }) => {
+    await page.goto("/#pour-qui");
+    await page.locator("#tab-franchiseurs").click();
+    const downloadPromise = page.waitForEvent("download");
+    await page.locator("#profil-franchiseurs .profile__doc a").click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("ma-prevention-presentation-franchiseurs.pdf");
+  });
+
+  test("formulaire SimplX configuré : le bouton y mène avec le profil, dans un nouvel onglet", async ({ page }) => {
+    const FORM = "https://www.simplx.fr/presentation-ma-prevention/";
+    await page.route("**/assets/js/main.js*", async (route) => {
+      const body = (await (await route.fetch()).text()).replace('FORMULAIRE_PRESENTATION = ""', `FORMULAIRE_PRESENTATION = "${FORM}"`);
+      await route.fulfill({ contentType: "application/javascript", body });
+    });
+    await page.goto("/");
+    const link = page.locator("#profil-franchiseurs .profile__doc a");
+    await expect(link).toHaveAttribute(
+      "href",
+      `${FORM}?profil=franchiseurs&utm_source=ma-prevention.fr&utm_medium=referral&utm_campaign=distributeurs&utm_content=presentation-franchiseurs`
+    );
+    await expect(link).not.toHaveAttribute("download");
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", /noopener/);
+    await page.locator("#tab-franchiseurs").click();
+    await expect(link).toHaveAccessibleName(/nouvel onglet/);
+  });
+
+  test("les PDF restent hors des moteurs de recherche et le deck source hors du site", async ({ request }) => {
+    const robots = await (await request.get("/robots.txt")).text();
+    expect(robots).toMatch(/^Disallow: \/documents\/$/m);
+    expect(fs.readFileSync(require("path").join(__dirname, "..", ".gitignore"), "utf8")).toMatch(/^sources\/$/m);
+    const sitemap = await (await request.get("/sitemap.xml")).text();
+    expect(sitemap).not.toContain("documents/");
+  });
+
+  test("le profil franchiseurs n'annonce ni centrale d'achat ni conditions négociées", async ({ page }) => {
+    // Points du deck à valider avec SimplX avant de les promettre (notes des slides franchiseurs).
+    await page.goto("/");
+    const texte = await page.locator("#profil-franchiseurs").evaluate((n) => n.textContent);
+    expect(texte).not.toMatch(/centrale d'achat|n[ée]goci|co[uû]ts? r[ée]duits?/i);
+    // Les réseaux de franchise ont désormais leur propre profil.
+    expect(await page.locator("#profil-reseaux").evaluate((n) => n.textContent)).not.toMatch(/franchis/i);
+  });
+});
+
 test.describe("Les packs", () => {
   // Noms des packs tels qu'ils apparaissent dans la plateforme (« Mes abonnements »).
   const OFFERT = "Effectifs et compétences";
@@ -362,11 +439,12 @@ test.describe("Pour qui ?", () => {
     ["tab-prevoyance", "Organismes de prévoyance"],
     ["tab-banques", "Services bancaires"],
     ["tab-consultants", "Consultants QHSE, IPRP et cabinets de prévention"],
+    ["tab-franchiseurs", "Franchiseurs"],
   ];
 
-  test("six profils, chacun avec ses avantages et ses cas d'usage", async ({ page }) => {
+  test("sept profils, chacun avec ses avantages et ses cas d'usage", async ({ page }) => {
     await page.goto("/#pour-qui");
-    await expect(page.locator("#pour-qui [role=tab]")).toHaveCount(6);
+    await expect(page.locator("#pour-qui [role=tab]")).toHaveCount(PROFILS.length);
     for (const [tab, titre] of PROFILS) {
       await page.locator(`#${tab}`).click();
       await expect(page.locator(`#${tab}`)).toHaveAttribute("aria-selected", "true");
@@ -386,11 +464,11 @@ test.describe("Pour qui ?", () => {
     await expect(page.locator("#profil-assureurs")).toBeVisible();
     await expect(page.locator("#profil-reseaux")).toBeHidden();
     await page.keyboard.press("End");
-    await expect(page.locator("#tab-consultants")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#tab-franchiseurs")).toHaveAttribute("aria-selected", "true");
     await page.keyboard.press("ArrowRight");
     await expect(page.locator("#tab-reseaux")).toBeFocused();
     await page.keyboard.press("ArrowLeft");
-    await expect(page.locator("#tab-consultants")).toBeFocused();
+    await expect(page.locator("#tab-franchiseurs")).toBeFocused();
     await page.keyboard.press("Home");
     await expect(page.locator("#tab-reseaux")).toHaveAttribute("aria-selected", "true");
     // Un seul onglet dans l'ordre de tabulation.
@@ -1064,8 +1142,8 @@ test.describe("Sans JavaScript", () => {
       await expect(page.locator(sel)).toBeHidden();
     }
     const profils = page.locator("#pour-qui .profile");
-    await expect(profils).toHaveCount(6);
-    for (let i = 0; i < 6; i++) await expect(profils.nth(i)).toBeVisible();
+    await expect(profils).toHaveCount(7);
+    for (let i = 0; i < 7; i++) await expect(profils.nth(i)).toBeVisible();
     for (const id of ["capture-abonnements", "capture-referent"]) await expect(page.locator(`#${id}`)).toBeVisible();
     // Frise des mises à jour : liste défilante, sans flèches ni barre de progression.
     await expect(page.locator("#mises-a-jour .js-maj-nav")).toBeHidden();

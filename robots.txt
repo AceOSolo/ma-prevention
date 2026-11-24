@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /contact.php
+Disallow: /documents/
+Disallow: /outils/
+Disallow: /tests/
 
 Sitemap: https://ma-prevention.fr/sitemap.xml

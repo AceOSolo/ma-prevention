@@ -29,6 +29,9 @@ assets/
   fonts/                Bricolage Grotesque, Atkinson Hyperlegible Next et Mono auto-hébergées (licence SIL OFL)
   img/                  Logos Ma-prevention (SVG), logo SimplX (pied de page), favicons, image de partage
   img/captures/         Captures de la plateforme, logos masqués (WebP, pleine taille et version -960 pour les petits écrans)
+documents/              Présentations PDF par profil (générées, non référencées : robots.txt)
+outils/                 generer-presentations.ps1 : découpe du deck distributeurs en un PDF par profil
+sources/                Deck source des présentations (.pptx) : local uniquement, ignoré par git
 ```
 
 ## Réglages courants
@@ -38,7 +41,8 @@ assets/
 | Nombre de places early bird restantes | `index.html`, attribut `data-places="20"` sur la balise `<body>`. À 0, le compteur disparaît. |
 | Lien du bouton « Contacter SimplX » et objet des e-mails | `index.html` : section `#contact`, pied de page et FAQ (3 liens vers simplx.fr/contact, 3 liens `mailto:`) ; `mentions-legales.html`. Garder les mêmes paramètres partout (constantes `OBJET`, `CONTACT` et `MAIL` des tests). |
 | Liste et contenu des packs | `index.html`, section `#packs` (et question « Quels packs… » de la FAQ). Les noms reprennent ceux de la plateforme (écran « Mes abonnements »). Le site n'annonce volontairement aucun nombre de packs : il évolue avec les packs à venir. |
-| Profils de distributeurs (« Pour qui ? ») | `index.html`, section `#pour-qui` : un bouton d'onglet et un panneau `.profile` par profil |
+| Profils de distributeurs (« Pour qui ? ») | `index.html`, section `#pour-qui` : un bouton d'onglet et un panneau `.profile` par profil (7 profils, franchiseurs compris), chacun avec son bloc `.profile__doc` vers sa présentation PDF |
+| Présentations PDF par profil | Voir « Présentations par profil » ci-dessous : deck dans `sources/`, script `outils/generer-presentations.ps1`, PDF dans `documents/`, constante `FORMULAIRE_PRESENTATION` de `assets/js/main.js` |
 | Tarif dégressif des packs (prix catalogue appliqué par SimplX) | `assets/js/main.js`, constantes `REMISES` et `SEUIL_PILOTAGE` ; textes et escalier des prix dans `index.html` (bloc `#remises`, synthèse, FAQ) et `cgv.html` (article 6) |
 | Option espaces référents | `index.html`, section `#referents` (et synthèse, FAQ) et `cgv.html` (articles 10 et 11). L'espace est facturé 100 € HT par client et par an avec les intervenants du distributeur, offert avec un référent SimplX. |
 | Conditions générales de vente | `cgv.html` : mettre à jour la date de version en tête de page à chaque modification, et reporter tout changement de tarif fait dans `index.html` |
@@ -76,6 +80,37 @@ Les liens vers https://www.simplx.fr/contact/ portent `?objet=Ma-prevention – 
   2. recommandé : ajouter un champ caché « Origine » de valeur par défaut `{querystring:utm_source}`, que le visiteur ne peut pas effacer (vide pour un contact direct sur simplx.fr) ;
   3. action « Notification e-mail » : vérifier que le message contient `{all_fields_table}` ou ces deux champs, et mettre l'objet dans le sujet de l'e-mail, par exemple `Contact simplx.fr : {field:objet_1770204953949}`.
 
+### Présentations par profil
+
+Chaque profil de « Pour qui ? » propose sa présentation : un PDF de 16 pages, le socle commun (offre, packs, tarifs, mise en service) suivi des 2 pages du module de la cible.
+
+**Générer les PDF** (Windows, PowerPoint installé) : déposer le deck dans `sources/Ma-prevention_presentation_distributeurs.pptx`, puis depuis la racine du site :
+
+```
+powershell -ExecutionPolicy Bypass -File outils\generer-presentations.ps1
+```
+
+Le script prend comme socle toutes les slides placées avant la slide « MODULES PAR CIBLE » (exclue des PDF : c'est un sommaire interne), et pour chaque cible les slides titrées « MODULE – <CIBLE> ». Les numéros de slide se recalculent. Avant l'export, il refuse un deck qui enfreint les règles du site : nombre de packs annoncé, centrale d'achat, taux de commission, comparaison sectorielle (promesses non validées par SimplX), argument financier dans les modules assureurs et experts-comptables. Il écrit `documents/ma-prevention-presentation-<profil>.pdf` pour `reseaux`, `assureurs`, `experts-comptables`, `prevoyance`, `banques`, `consultants` et `franchiseurs`. Pour une nouvelle cible : ajouter une ligne dans `$cibles` et `$titres` du script, un panneau dans `#pour-qui` et une entrée dans `PRESENTATIONS` des tests.
+
+Le deck reste hors du dépôt (`sources/` est ignoré par git) : ses notes d'orateur sont internes. Les PDF ne reprennent pas les notes.
+
+**Collecte des coordonnées.** Le site n'a pas de formulaire (GitHub Pages). Les coordonnées sont recueillies par un formulaire SimplX, qui redirige vers le PDF une fois envoyé :
+
+- tant que `FORMULAIRE_PRESENTATION` est vide dans `assets/js/main.js`, le bouton « Recevoir la présentation » télécharge le PDF directement (Google Analytics compte les téléchargements de PDF avec la mesure améliorée, événement `file_download`) ;
+- une fois le formulaire créé sur simplx.fr, renseigner son adresse dans `FORMULAIRE_PRESENTATION` (et incrémenter `main.js?v=`) : le bouton ouvre alors ce formulaire dans un nouvel onglet, avec `?profil=<profil>` et les paramètres UTM (`utm_content=presentation-<profil>`).
+
+Le formulaire « Formulaire de contact » de simplx.fr ne convient pas tel quel : il sert à tous les produits SimplX (champ « Objet » en liste déroulante : Ma-Prévention, EasyQuiz, Move4Good…), une redirection vers le PDF y toucherait toutes les demandes. Réglages à faire par l'administrateur de simplx.fr (Ninja Forms) :
+
+1. dupliquer « Formulaire de contact » en « Présentation Ma-prevention » ; retirer le champ « Objet » et le message (ou le rendre facultatif) ; ajouter un champ « Organisation » obligatoire et garder Cloudflare Turnstile ;
+2. ajouter un champ caché de clé `profil`, valeur par défaut `{querystring:profil}`, et un champ caché `origine` de valeur `{querystring:utm_source}` ;
+3. action « Notification e-mail » vers SimplX, sujet `Ma-prevention – présentation {field:profil}`, message `{all_fields_table}` ; garder l'action « Enregistrer la soumission » ;
+4. action « Rediriger » vers `https://ma-prevention.fr/documents/ma-prevention-presentation-{field:profil}.pdf` ;
+5. placer ce formulaire sur une page dédiée non indexée, par exemple `https://www.simplx.fr/presentation-ma-prevention/`, puis donner son adresse pour `FORMULAIRE_PRESENTATION`.
+
+Les PDF restent accessibles à qui connaît leur adresse (site statique) ; `robots.txt` les tient hors des moteurs de recherche et ils ne figurent pas dans `sitemap.xml`.
+
+**Champ « Objet » du formulaire de contact (relevé le 24/11/2026).** Ce champ est désormais une liste déroulante obligatoire : le paramètre `?objet=…` des liens de contact ne la préremplit plus, le visiteur choisit lui-même « Ma-Prévention ». Les paramètres UTM restent transmis à Google Analytics. Les étapes 1 et 3 de « Origine des demandes de contact » ci-dessus ne s'appliquent plus telles quelles.
+
 ### HTTPS
 
 Au 21/10/2026, le site répond en HTTP mais pas en HTTPS : GitHub n'a pas émis de certificat pour `ma-prevention.fr` (le navigateur reçoit le certificat générique de GitHub, d'où l'erreur). La zone DNS est correcte (4 enregistrements A vers GitHub Pages, `www` en CNAME vers `aceosolo.github.io`, aucun enregistrement CAA bloquant). Pour déclencher l'émission, avec le compte propriétaire du dépôt :
@@ -111,12 +146,13 @@ Le dossier `tests/` contient une suite Playwright (Chromium, format desktop 1440
 - défilement : position des sections sous l'en-tête collant, accès direct par URL, molette, clavier, tactile, absence de défilement horizontal de 320 à 1920 px ;
 - menu mobile, aperçu de marque, simulateur (souris et clavier), FAQ, compteur de places ;
 - section des packs (noms de la plateforme, pack Effectifs et compétences offert, packs à venir, IA dans le socle commun, aucun nombre de packs annoncé, grille sans case vide) ;
-- tarif dégressif présenté comme le prix catalogue de SimplX (montants de 1 à 5 packs, Pilotage et plan d'actions offert dès 3), profils « Pour qui ? » (clic et clavier), captures d'écran, option référents (espace offert avec un référent SimplX) ;
+- tarif dégressif présenté comme le prix catalogue de SimplX (montants de 1 à 5 packs, Pilotage et plan d'actions offert dès 3), sept profils « Pour qui ? » (clic et clavier), captures d'écran, option référents (espace offert avec un référent SimplX) ;
 - mentions légales conformes à simplx.fr et CGV (sommaire, tarifs identiques à ceux de la page) ;
 - mentions retirées : Flex, SECUSAM, espaces « Je cherche / Je propose », « Réserver ma place » ;
 - exemple de marque blanche : bascule entre le thème par défaut et une couleur libre, contrastes d'au moins 4,5:1 sur le bouton et les repères, affichage sans JavaScript ;
 - bouton de contact et liens vers simplx.fr (ouverture dans un nouvel onglet vers la bonne adresse, objet et source Ma-prevention sur chaque lien de contact), aucune mention de Secutop ni de SECUSOFT ;
 - retours du 27 octobre 2026 : baseline sans « Vos revenus », profils assureurs et experts-comptables sans argument financier, bloc éditeur SimplX, section hébergement et sécurité ;
+- présentations par profil : un PDF de 16 pages par profil, téléchargement direct ou passage par le formulaire SimplX quand `FORMULAIRE_PRESENTATION` est renseigné, PDF hors des moteurs de recherche, deck source ignoré par git, profil franchiseurs sans centrale d'achat ni conditions négociées ;
 - clavier et accessibilité (lien d'évitement, focus visible, audit axe contrastes compris, sur chaque thème de l'exemple) ;
 - si un Apache est disponible, le `.htaccess`.
 
